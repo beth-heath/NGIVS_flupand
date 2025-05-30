@@ -2,9 +2,10 @@
 
 # vaccine types, from latest MMGH choices:
 vacc_type_list_sterilising <- list(
+  #trialling one that does not work, i.e., like none
   `0` = list(
     imm_duration = 0.5, # immunity duration
-    VE = c(0.7, 0.46, 0.42, 0.28), # c(Matched u65, 65+, mismatched u65, 65+)
+    VE = c(0, 0, 0, 0), # c(Matched u65, 65+, mismatched u65, 65+)
     rel_inf = 1, # relative infectiousness of vaccinated individuals,
     gamma1_variable = 0.8,
     gamma2_variable = 1.8,
@@ -19,14 +20,14 @@ vacc_type_list_sterilising <- list(
     gamma2_variable = 1.8,
     stop_infec_prob = 0
   ),
- # A.2 = list(
-#    imm_duration = 0.5,
-#    VE = c(0.9, 0.7, 0.42, 0.28),
-#    rel_inf = 1,
-#    gamma1_variable = 0.8,
-#    gamma2_variable = 1.8,
-#    stop_infec_prob =0
-#  ),
+  A.2 = list(
+    imm_duration = 0.5,
+    VE = c(0.9, 0.7, 0.42, 0.28),
+    rel_inf = 1,
+    gamma1_variable = 0.8,
+    gamma2_variable = 1.8,
+    stop_infec_prob =0
+  ),
   B.1 = list(
     imm_duration = 2,
     VE = c(0.9, 0.7, 0.7, 0.46),
@@ -54,50 +55,51 @@ vacc_type_list_sterilising <- list(
 )
 
 vacc_type_list_dis_mod <- list(
+  #trialling one that does not work, i.e., like none
   `0` = list(
     imm_duration = 0.5, # immunity duration
-    VE = c(0.9, 0.7, 0.7, 0.46), # c(Matched u65, 65+, mismatched u65, 65+)
+    VE = c(0, 0, 0, 0), # c(Matched u65, 65+, mismatched u65, 65+)
     rel_inf = 1, # relative infectiousness of vaccinated individuals,
     gamma1_variable = 0.8,
     gamma2_variable = 1.8,
-    stop_infec_prob=1
+    stop_infec_prob =1 
     
   ),
   A.1 = list(
     imm_duration = 1,
-    VE = c(0.9, 0.7, 0.7, 0.46),
+    VE = c(0.7, 0.46, 0.42, 0.28),
     rel_inf = 1,
     gamma1_variable = 0.8,
     gamma2_variable = 1.8,
-    stop_infec_prob=1
+    stop_infec_prob = 1
   ),
-#  A.2 = list(
-#    imm_duration = 0.5,
-#    VE = c(0.9, 0.7, 0.7, 0.46),
-#    rel_inf = 1,
-#    gamma1_variable = 0.8,
-#    gamma2_variable = 1.8,
-#    stop_infec_prob=1
-#  ),
+  A.2 = list(
+    imm_duration = 0.5,
+    VE = c(0.7, 0.46, 0.42, 0.28),
+    rel_inf = 1,
+    gamma1_variable = 0.8,
+    gamma2_variable = 1.8,
+    stop_infec_prob =1
+  ),
   B.1 = list(
     imm_duration = 2,
     VE = c(0.9, 0.7, 0.7, 0.46),
     rel_inf = 1,
     gamma1_variable = 0.8,
     gamma2_variable = 1.8,
-    stop_infec_prob=1
+    stop_infec_prob =1
   ),
   B.2 = list(
     imm_duration = 3,
-    VE = c(0.9, 0.7, 0.7, 0.46),
+    VE = c(0.7, 0.46, 0.7, 0.46),
     rel_inf = 1,
     gamma1_variable = 0.8,
     gamma2_variable = 1.8,
-    stop_infec_prob=1
+    stop_infec_prob =1
   ),
   C = list(
     imm_duration = 5,
-    VE = c(0.9, 0.7, 0.7, 0.46),
+    VE = c(0.9, 0.7, 0.9, 0.7),
     rel_inf = 1,
     gamma1_variable = 0.8,
     gamma2_variable = 1.8,
@@ -106,23 +108,76 @@ vacc_type_list_dis_mod <- list(
 )
 
 vacc_type_list_reduced_infec <- list(
+  #trialling one that does not work, i.e., like none
   `0` = list(
     imm_duration = 0.5, # immunity duration
-    VE = c(0.9, 0.7, 0.7, 0.46), # c(Matched u65, 65+, mismatched u65, 65+)
+    VE = c(0, 0, 0, 0), # c(Matched u65, 65+, mismatched u65, 65+)
     rel_inf = 1, # relative infectiousness of vaccinated individuals,
     gamma1_variable = 0.8,
     gamma2_variable = 1.8,
-    stop_infec_prob=1
+    stop_infec_prob =1 
     
   ),
   A.1 = list(
     imm_duration = 1,
-    VE = c(0.9, 0.7, 0.7, 0.46),
+    VE = c(0.7, 0.46, 0.42, 0.28),
     rel_inf = 1,
     gamma1_variable = 0.8,
     gamma2_variable = 1.8,
-    stop_infec_prob=1
+    stop_infec_prob = 1
   ),
+  A.2 = list(
+    imm_duration = 0.5,
+    VE = c(0.7, 0.46, 0.42, 0.28),
+    rel_inf = 1,
+    gamma1_variable = 0.8,
+    gamma2_variable = 1.8,
+    stop_infec_prob =1
+  ),
+  B.1 = list(
+    imm_duration = 2,
+    VE = c(0.9, 0.7, 0.7, 0.46),
+    rel_inf = 1,
+    gamma1_variable = 0.8,
+    gamma2_variable = 0.54,
+    stop_infec_prob =1
+  ),
+  B.2 = list(
+    imm_duration = 3,
+    VE = c(0.7, 0.46, 0.7, 0.46),
+    rel_inf = 1,
+    gamma1_variable = 0.8,
+    gamma2_variable = 0.54,
+    stop_infec_prob =1
+  ),
+  C = list(
+    imm_duration = 5,
+    VE = c(0.9, 0.7, 0.9, 0.7),
+    rel_inf = 1,
+    gamma1_variable = 0.8,
+    gamma2_variable = 0.54,
+    stop_infec_prob=1
+  )
+)
+
+#vacc_type_list_reduced_infec <- list(
+#  `0` = list(
+#    imm_duration = 0.5, # immunity duration
+#    VE = c(0.9, 0.7, 0.7, 0.46), # c(Matched u65, 65+, mismatched u65, 65+)
+#    rel_inf = 1, # relative infectiousness of vaccinated individuals,
+#    gamma1_variable = 0.8,
+#    gamma2_variable = 1.8,
+#    stop_infec_prob=1
+#    
+#  ),
+#  A.1 = list(
+#    imm_duration = 1,
+#    VE = c(0.9, 0.7, 0.7, 0.46),
+#    rel_inf = 1,
+#    gamma1_variable = 0.8,
+#    gamma2_variable = 1.8,
+#    stop_infec_prob=1
+#  ),
 #  A.2 = list(
 #    imm_duration = 0.5,
 #    VE = c(0.9, 0.7, 0.7, 0.46),
@@ -131,31 +186,31 @@ vacc_type_list_reduced_infec <- list(
 #    gamma2_variable = 0.54,
 #    stop_infec_prob=1
 #  ),
-  B.1 = list(
-    imm_duration = 2,
-    VE = c(0.9, 0.7, 0.7, 0.46),
-    rel_inf = 1,
-    gamma1_variable = 0.8,
-    gamma2_variable = 0.54,
-    stop_infec_prob=1
-  ),
-  B.2 = list(
-    imm_duration = 3,
-    VE = c(0.9, 0.7, 0.7, 0.46),
-    rel_inf = 1,
-    gamma1_variable = 0.8,
-    gamma2_variable = 0.54,
-    stop_infec_prob=1
-  ),
-  C = list(
-    imm_duration = 5,
-    VE = c(0.9, 0.7, 0.7, 0.46),
-    rel_inf = 1,
-    gamma1_variable = 0.8,
-    gamma2_variable = 0.54,
-    stop_infec_prob=1
-  )
-)
+#  B.1 = list(
+#    imm_duration = 2,
+#    VE = c(0.9, 0.7, 0.7, 0.46),
+#    rel_inf = 1,
+#    gamma1_variable = 0.8,
+#    gamma2_variable = 0.54,
+#    stop_infec_prob=1
+#  ),
+#  B.2 = list(
+#    imm_duration = 3,
+#    VE = c(0.9, 0.7, 0.7, 0.46),
+#    rel_inf = 1,
+#    gamma1_variable = 0.8,
+#    gamma2_variable = 0.54,
+#    stop_infec_prob=1
+#  ),
+#  C = list(
+#    imm_duration = 5,
+#    VE = c(0.9, 0.7, 0.7, 0.46),
+#    rel_inf = 1,
+#    gamma1_variable = 0.8,
+#    gamma2_variable = 0.54,
+#    stop_infec_prob=1
+#  )
+#)
 
 ## function to map targeted ages to proportions of each model age group, not in use now
 coverage_vector <- function(

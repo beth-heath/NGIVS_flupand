@@ -25,7 +25,7 @@ years_of_analysis <- 30
 
 
 
-simulations <-5
+simulations <-3
 
 ageing <- T # are the populations being aged in the simulations?
 key_dates <- c('01-04', '01-10') # vaccination and ageing dates (hemisphere-dependent)
@@ -97,9 +97,9 @@ vacc_calendar_start <<- ifelse(hemisphere_input=='NH', key_dates[2], key_dates[1
 
 
 seasonal_flu_included <- c('TRUE', 'FALSE')[1]
-pandemic_flu_included <- c('TRUE', 'FALSE')[2]
+pandemic_flu_included <- c('TRUE', 'FALSE')[1]
 
-pandemic_year_chosen <- 5
+pandemic_year_chosen <- 2
 
 disease_scenarios <- c('1918', '1957', '2009')[1]
 if (disease_scenarios == '1918'){
@@ -121,7 +121,7 @@ if (disease_scenarios == '1918'){
 
 if (seasonal_flu_included == 'TRUE'){
   epidemic_data <- converting_epidemic_code(itz_input,years_of_analysis,simulations, ageing_date)
-  epid_dt <<- selecting_pandemic_parameters(epidemic_data, pandemic_year_chosen, disease_scenarios)
+  epid_dt <<- selecting_pandemic_parameters(epidemic_data, pandemic_year_chosen, disease_scenarios, simulations)
 } else{
   epid_dt <<- selecting_pandemic_parameters(NA, pandemic_year_chosen, disease_scenarios)
 }
@@ -130,9 +130,6 @@ if (seasonal_flu_included == 'TRUE'){
 if (pandemic_flu_included == 'FALSE'){
   epid_dt<- epid_dt %>% drop_na(original_date)
 }
-
-
-
 
 
 
@@ -161,11 +158,12 @@ if (vaccine_strategy_pandemics == 'sterilising'){
 
 iso3c_input <- 'GBR'
 #trialling code
+source(here::here('functions/fluparallelalteredITZ.R'))
 #infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=1)
 
 infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
-all_epid <- list(infs_rds_list[[1]][[1]], infs_rds_list[[2]][[1]], infs_rds_list[[3]][[1]], infs_rds_list[[4]][[1]], infs_rds_list[[5]][[1]])
-pandemic_only <- list(infs_rds_list[[1]][[2]], infs_rds_list[[2]][[2]], infs_rds_list[[3]][[2]], infs_rds_list[[4]][[2]], infs_rds_list[[5]][[2]])
+all_epid <- list(infs_rds_list[[1]][[1]], infs_rds_list[[2]][[1]], infs_rds_list[[3]][[1]], infs_rds_list[[4]][[1]], infs_rds_list[[5]][[1]], infs_rds_list[[6]][[1]])
+pandemic_only <- list(infs_rds_list[[1]][[2]], infs_rds_list[[2]][[2]], infs_rds_list[[3]][[2]], infs_rds_list[[4]][[2]], infs_rds_list[[5]][[2]], infs_rds_list[[6]][[2]])
 
 infs_dt <- rbindlist(all_epid)
 infs_dt$tot <- rowSums(infs_dt[,2:5])

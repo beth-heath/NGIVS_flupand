@@ -36,7 +36,6 @@ incidence_VS <- function(
   #susceptibility_vector <- c(c((0.2*1 + 0.8*susceptibility), rep(susceptibility,3)), rep(0,8))
 
   susceptibility_vector <-c(0.2+0.8*susceptibility_for_kids, susceptibility_for_kids, rep(susceptibility,2), rep(0,8) )
-  print(susceptibility_vector)
   
   
   # Contacts matrix only covers one set of age groups, here we "repeat" it to also cover risk groups
@@ -88,7 +87,7 @@ incidence_VS <- function(
   
   # run the model
   y_run <- mod$run(t, hmax = NULL, method = "euler", hini = 0.25, atol = 1)
-  print(y_run)
+
   # calculate the cumulative values
   y <- mod$transform_variables(y_run)$cumI
   yU <- mod$transform_variables(y_run)$cumIU

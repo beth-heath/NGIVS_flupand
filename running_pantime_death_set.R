@@ -65,8 +65,8 @@ for (pand_time in 0:28){
                                         start_year_of_analysis, years_of_analysis)
   
   infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
-  all_epid <- list(infs_rds_list[[1]][[1]], infs_rds_list[[2]][[1]], infs_rds_list[[3]][[1]], infs_rds_list[[4]][[1]], infs_rds_list[[5]][[1]])
-  pandemic_only <- list(infs_rds_list[[1]][[2]], infs_rds_list[[2]][[2]], infs_rds_list[[3]][[2]], infs_rds_list[[4]][[2]], infs_rds_list[[5]][[2]])
+  all_epid <- list(infs_rds_list[[1]][[1]], infs_rds_list[[2]][[1]], infs_rds_list[[3]][[1]], infs_rds_list[[4]][[1]], infs_rds_list[[5]][[1]], infs_rds_list[[6]][[1]])
+  pandemic_only <- list(infs_rds_list[[1]][[2]], infs_rds_list[[2]][[2]], infs_rds_list[[3]][[2]], infs_rds_list[[4]][[2]], infs_rds_list[[5]][[2]], infs_rds_list[[6]][[1]])
   
   all_epid_dt <- rbindlist(all_epid)
   pandemic_dt <- rbindlist(pandemic_only)

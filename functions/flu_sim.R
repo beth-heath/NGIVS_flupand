@@ -101,6 +101,7 @@ one_flu <- function(
   # prop unvaccinated
   prop_unv <- demog_flu[U==T]$value/demog_flu[U==T]$total_as
   tot_pop <- demog_flu[U==T]$total_as
+
   
   if(nrow(demog_flu_next_yr)>0){
     prop_unv_n <- demog_flu_next_yr[U==T]$value/demog_flu_next_yr[U==T]$total_as
@@ -316,6 +317,8 @@ many_flu <- function(
       susceptibility_for_kids = epid_data$susceptibility_for_kids,
       pandemic_date
     )
+    
+
 
     
     # if(is.na(sum(rowSums(flu_epid_output %>% select(starts_with('I')))))){print(epidemic_i)}
@@ -377,6 +380,7 @@ dfn_vaccine_calendar_doses <- function(
   }
   
   dates_to_run <- last_monday(dates_to_run)
+
   
   coverage_matrix <- matrix(0, nrow = length(dates_to_run), ncol = no_age_groups)
   
@@ -466,6 +470,8 @@ dfn_vaccine_calendar_cov <- function(
 
   coverage_matrix <- matrix(0, nrow = length(dates_to_run), ncol = no_age_groups)
   
+  print(coverage_matrix)
+  
   vc <- as_vaccination_calendar(
     dates = dates_to_run,
     efficacy = efficacy,
@@ -480,6 +486,9 @@ dfn_vaccine_calendar_cov <- function(
   ## *current* vaccine calendar (if applicable):
   possible_start_dates <- as.Date(unlist(lapply(as.Date(paste0(vacc_calendar_start, '-', (year(dates_to_run[1]) - 1):(year(dates_to_run[length(dates_to_run)]) + 1)), format = '%d-%m-%Y'),
                                                 last_monday)))
+  
+
+  
   curr_start <- possible_start_dates[dates_to_run[1] - possible_start_dates < 7*vacc_calendar_weeks &
                                        dates_to_run[1] - possible_start_dates >= 0]
   if(length(curr_start) > 0){
@@ -566,21 +575,34 @@ flu_doses <- function(
     ageing_date = NULL, # e.g. '01-04'
     epid_inputs, # data.table of vectors of inputs for one_flu
     vaccine_program,
-    model_age_groups){
+    m_a_g){
   
   dates_many_flu <- seq.Date(last_monday(min(epid_inputs$period_start_date)), 
                              last_monday(max(epid_inputs$end_date)), 
                              by=7)
   
+  vacc_name <- names(vacc_type_list)[vaccine_type]
+  
+  vaccine_used_vec <- if(vaccine_variable == 'doses'){
+    # if using doses, NGIVs are often introduced years after the start of the epidemic period
+    doses[vacc_scenario == vacc_name & model_age_group==1]$vacc_used
+  }else{
+    # if using coverage, assuming NGIVs available each year (adjust here if not!)
+    rep(vacc_name, (year(epid_dt$end_date[1]) - year(epid_dt$period_start_date[1])))
+  }
+  
   doses <- fcn_annual_doses(
     country,
-    ageing = T,
+    ageing,
     ageing_date,
     dates_in = dates_many_flu,
     demographic_start_year = year(min(epid_inputs$period_start_date)),
-    vaccine_program,
+    vaccine_used = vaccine_used_vec,
+    vaccine_var = vaccine_variable,
+    doses_dt = if(vaccine_variable == 'doses'){doses}else{NULL},
+    vacc_cov_vec = if(vaccine_variable == 'coverage'){cov_vec}else{NULL},
     init_vaccinated = c(0,0,0,0),
-    model_age_groups
+    model_age_groups = m_a_g
   )
   
   doses
