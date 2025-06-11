@@ -2,7 +2,7 @@
 #setting seed
 set.seed(123)
 
-setwd('/Users/lshbh6/Documents/GitHub/Pandemicscurrent')
+
 #### load relevant packages ####
 library(here)
 source(here::here('setup','packages.R'))
