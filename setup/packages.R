@@ -1,24 +1,9 @@
 #### load relevant packages ####
 
-install.packages('readr')
-install.packages('dplyr')
-install.packages('data.table')
-install.packages('odin')
-install.packages('parallel')
-install.packages('cleaner')
-install.packages('countrycode')
-install.packages('ggplot2')
-install.packages('readxl')
-install.packages('tidyverse')
-install.packages('viridis')
-install.packages('patchwork')
-install.packages('wpp2022')
-install.packages('fluEvidenceSynthesis')
-install.packages('parallel')
-install.packages('openxlsx')
-install.packages('stringr')
-install.packages('purrr')
-install.packages('DescTools')
+
+install_github("PPgp/wpp2022")
+install_github("MJomaba/flu-evidence-synthesis", dependencies = TRUE)
+
 
 library(readr)
 suppressPackageStartupMessages(library(dplyr))
