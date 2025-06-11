@@ -1,5 +1,6 @@
 #### load relevant packages ####
 
+library(devtools)
 
 install_github("PPgp/wpp2022")
 install_github("MJomaba/flu-evidence-synthesis", dependencies = TRUE)
