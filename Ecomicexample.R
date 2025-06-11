@@ -1,6 +1,6 @@
 #### Economic Analysis #####
 
-#### Reading in variables that will be used ####
+#### Reading in parameter values that will be used ####
 
 if (vaccine_strategy_pandemics == 'disease-mod'){
   dcr_infr <- 0.7
@@ -8,10 +8,15 @@ if (vaccine_strategy_pandemics == 'disease-mod'){
   dcr_infr <- 1
 }
 
-#adding in WTP choice
 
 WTP_choice <- c('lancet','gdp')[1]
 WTP_GDP_ratio <- 1
+
+discount_SA <- 0
+
+cost_discount_rate_val <- c(0.03, 0.03)[1 + discount_SA]
+DALY_discount_rate_val <- c(0.03, 0)[1 + discount_SA]
+
 
 #### Editing data to get into the correct form #####
 
@@ -291,7 +296,8 @@ calculating_ylds_for_pandemic <- function(dataset, symp_samples,dcr_infr, year_o
 
 ### calculating total DALYs
 
-total_DALYS_for_seasonal <- function(dataset, symp_samples,dcr_infr, global_ihrs, outpatient_ratios,country_of_interest,
+total_DALYS_for_seasonal <- function(dataset, symp_samples,dcr_infr, global_ihrs, outpatient_ratios,
+                                     country_of_interest,
                                      national_ifrs, yll_df){
   
   ylds<- calculating_ylds_for_seasonal(dataset, symp_samples,dcr_infr, global_ihrs, outpatient_ratios,country_of_interest)
@@ -364,6 +370,57 @@ healthcost_analysis <- function(DALY_file, cost_predic_c, country_of_interest){
 
 ##### Dose costs ####
 
+# Doses code where for each simulation it works out the doses by restricting to the time studied from what is coming in
+#calculate the doses then do sums for them
+#I think I should make a seperate dose calculator and add that lists each pandemic number and then consequently the number of doses used in each year for each pandemic scenario.
+#then load this into the dataset
+
+
+#loading in the doses datasets
+
+prices <- data.table(read_csv(here::here('data','MMGH','prices.csv'), show_col_types=F))
+country_specs <- data.table(read.xlsx(here::here('data','MMGH','country_specs.xlsx')))
+delivery_cost_samples <- data.table(read_csv(here::here('data','econ','delivery_cost_samples.csv'), show_col_types=F))
+
+
+#setting up the doses code
+
+doses_calculator <- function(country_specs, delivery_cost_samples, 
+                             country_of_interest, doses_info, wastage, dose_price, start_year_of_analysis,
+                            cost_discount_rate_val){
+  country_specs <- country_specs[iso3c %in% country_of_interest]
+  
+  country_specs[, country_type := case_when(
+    iso3c == 'USA' ~ 'us',
+    income_g == 'HIC' & !iso3c=='USA' ~ 'hics',
+    income_g == 'UMIC' ~ 'umics',
+    income_g %in% c('LMIC','LIC') & procure_mech == 'UNICEF' ~ 'lmic_un_proc',
+    income_g %in% c('LMIC','LIC') & procure_mech == 'Self-procuring' ~ 'lmic_self_proc',
+  )]
+  
+  doses <- doses_info[iso3c %in% country_of_interest]
+  
+  doses[, doses := ceiling(doses*(1+wastage))] # inflating for wastage (extra purchasing)
+  
+  doses <- doses %>% mutate(dose_cost = doses*dose_price)
+  
+  delivery_cost <- delivery_cost_samples[iso3c %in% country_of_interest]
+  
+  merged_dataset <- merge(doses, delivery_cost[, .(simulation_index, delivery_cost)], by = c("simulation_index"), all.x = TRUE)
+  
+  merged_dataset <- merged_dataset %>% mutate(total_delivery_cost = doses*delivery_cost,
+                                              total_cost = total_delivery_cost + doses_cost,
+                                              discount_year = year - start_year_of_analysis,
+                                              discount_rate = (1 + cost_discount_rate_val)^(-discount_year),
+                                              discounted_doses_cost = total_cost*discount_rate)
+
+  
+  return(merged_dataset)
+  
+}
+
+
+
 ##### WTP threshold #####
 
 wtp_thresh <- data.table(read_csv(here::here('data/econ/WTP_thresholds.csv'), show_col_type=F))
@@ -383,15 +440,95 @@ adding_in_WTP <- function(DALY_file, WTP_choice, wtp_thresh, country_of_interest
 
 ##### Discounting #####
 
-adding_in_discounting <- function(final_analysis_file, discount_rate){
+adding_in_discounting <- function(final_analysis_file, start_year_of_analysis, cost_discount_rate_val, DALY_discount_rate_val){
+  final_analysis_file <- final_analysis_file %>% mutate(discount_year = year -start_year_of_analysis,
+                                                        cost_discount_rate = (1 + cost_discount_rate_val)^(-discount_year),
+                                                        DALY_discount_rate = (1 + DALY_discount_rate_val)^(-discount_year),
+                                                        discounted_epi_costs = (total_hosp_cost + total_outp_cost)*cost_discount_rate,
+                                                        discounted_DALYs_cost = cost_of_DALYs*DALY_discount_rate
+                                                        )
+  return(final_analysis_file)
   
 }
 
-trial1<- total_DALYS_for_seasonal(seasonal_dt, symp_samples,dcr_infr, global_ihrs, outpatient_ratios,'GBR',
-                         national_ifrs, yll_df)
 
-healthcost_analysis(trial1, cost_predic_c, 'GBR')
+### Overall analysis
 
-adding_in_WTP(trial1, WTP_choice, wtp_thresh, 'GBR', WTP_GDP_ratio)
+Overall_economic_analysis <- function(seasonal_data_set, pandemic_data_set, symp_samples,dcr_infr, global_ihrs,
+                                      country_of_interest,
+                                      national_ifrs, yll_df, year_of_interest, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
+                                      cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
+                                      cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
+                                      doses_info, wastage, dose_price){
+  
+  #calculating the DALYS for seasonal and pandemic
+  
+  seasonal_DALYs <- total_DALYS_for_seasonal(seasonal_data_set, symp_samples,dcr_infr, global_ihrs, outpatient_ratios,
+                                             country_of_interest,
+                                             national_ifrs, yll_df)
+  
+  pandemic_DALYs <- total_DALYS_for_pandemic(pandemic_data_set, symp_samples,dcr_infr, year_of_interest,hosp_ratio, 
+                                             global_ihrs, outpatient_ratios,country_of_interest,
+                                             DALY_weight_samples, pandemic_ifrs, yll_df)
+  
+  merged_dataset <- merge(seasonal_DALYs, pandemic_DALYs, by=c('simulation_index', 'vacc_type', 'year', 'age_grp'))
+  
+  merged_dataset  <- merged_dataset  %>% mutate(hospitalisations = hospitalisations.x + hospitalisations.y,
+                                                outpatients = outpatients.x + outpatients.y,
+                                                total_DALYS = total_DALYS.x + total_DALYS.y)
+  
+  merged_subset<- subset(merged_dataset, select = c('simulation_index', 'vacc_type', 'year', 'age_grp', 'hospitalisations', 'outpatients', 'total_DALYS'))
+  
+  healthcareananalysis <- healthcost_analysis(merged_subset, cost_predic_c, country_of_interest)
+  
+  combined_analysis <- adding_in_WTP(healthcareananalysis, WTP_choice, wtp_thresh, country_of_interest, WTP_GDP_ratio)
+  
+  combined_analysis <- adding_in_discounting(combined_analysis, 2025, cost_discount_rate_val, DALY_discount_rate_val)
+  
+  doses_calculated <- doses_calculator(country_specs, delivery_cost_samples, 
+                                       country_of_interest, doses_info, wastage, dose_price, 2025,
+                                       cost_discount_rate_val)
+  merged_dataset <- merge(combined_analysis, doses_calculated, by=c('simulation_index', 'vacc_type', 'year', 'age_grp'))
+  
+  #summarising over age group
+  merged_dataset <- merged_dataset %>%
+    group_by(simulation_index, vacc_type, year) %>%
+    summarise(
+      discounted_epi_costs = sum(discounted_epi_costs),
+      discounted_DALYs_cost = sum(discounted_DALYs_cost),
+      discounted_doses_cost = sum(discounted_doses_cost),
+      vaccs = sum(vaccs),
+      
+      .groups = 'drop'
+    )
+  
+  
+  merged_dataset <- merged_dataset %>% mutate(total_cost = discounted_doses_cost + discounted_epi_costs + discounted_DALYs_cost
+  )
+  
+  #can summarise over the study period
+  merged_dataset <- merged_dataset %>%
+    group_by(simulation_index, vacc_type) %>%
+    summarise(
+      discounted_epi_costs = sum(discounted_epi_costs),
+      discounted_DALYs_cost = sum(discounted_DALYs_cost),
+      total_cost = sum(total_cost),
+      discounted_doses_cost = sum(discounted_doses_cost),
+      vaccs = sum(vaccs),
+      .groups = 'drop'
+    )
+  
+  
+  #for the whole period dividing the other costs by the number of doses
+  
+  merged_dataset <- merged_dataset %>% mutate(cost_by_dose = (discounted_epi_costs + discounted_DALYs_cost)/doses)
+  
+  
+  return(merged_dataset)
+  
+}
+
+
+
 
 

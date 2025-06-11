@@ -417,10 +417,6 @@ combined_1918 <- pivot_longer(combined_1918,
                               names_to = "type",
                               values_to = "total")
 
-combined_2009 <- pivot_longer(combined_2009,
-                              cols = c(`Mean Pandemic`, diff),
-                              names_to = "type",
-                              values_to = "total")
 
 
 plot1 <- ggplot(combined_2009, aes(x = Year, y = total/1e6, fill = type)) +

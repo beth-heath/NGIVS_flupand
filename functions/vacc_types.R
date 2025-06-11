@@ -22,7 +22,8 @@ vacc_type_list_sterilising <- list(
   ),
   A.2 = list(
     imm_duration = 0.5,
-    VE = c(0.9, 0.7, 0.42, 0.28),
+    #VE = c(0.9, 0.7, 0.42, 0.28),
+    VE = c(0.7, 0.46, 0.42, 0.28),
     rel_inf = 1,
     gamma1_variable = 0.8,
     gamma2_variable = 1.8,

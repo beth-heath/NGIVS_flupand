@@ -2,3 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
+outputs/*
+GBR_runs/*
+GBR_runs (old_/*

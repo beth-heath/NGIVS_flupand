@@ -79,6 +79,7 @@ one_flu <- function(
     demography_dt[week %in% c(week1,week2) & V==T,]$value/demography_dt[week %in% c(week1,week2) & V==T,]$total_as
   )
   
+  
   ## which year to vaccinate population?
   key_vacc_date <- case_when(month(epid_start_date) < as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'NH' ~ year(epid_start_date) - 1,
                              month(epid_start_date) >= as.numeric(substr(ageing_date,4,5)) & hemisphere_input == 'NH' ~ year(epid_start_date),
@@ -101,6 +102,7 @@ one_flu <- function(
   # prop unvaccinated
   prop_unv <- demog_flu[U==T]$value/demog_flu[U==T]$total_as
   tot_pop <- demog_flu[U==T]$total_as
+  
 
   
   if(nrow(demog_flu_next_yr)>0){
@@ -187,7 +189,12 @@ one_flu <- function(
   if(!is.null(intended_r0)){
     contact_matrix_small <- contact_matrix_small*(intended_r0/current_r0)
   }
-
+  
+  
+  vaccinated_at_time <- demography_dt[week == last_monday(epid_start_date)]
+  prop_unvaccinated <- vaccinated_at_time[U==T]$value/vaccinated_at_time[U==T]$total_as
+  
+  
   ## run transmission model
   dt <- incidence_VS(
     demography_input = tot_pop,
@@ -197,7 +204,8 @@ one_flu <- function(
     calendar_input,
     contacts = contact_matrix_small,
     waning_rate,
-    init_vaccinated = 1 - prop_unv,
+    #init_vaccinated = 1 - prop_unv,
+    init_vaccinated = 1 - prop_unvaccinated,
     begin_date = epid_start_date, 
     end_date = min(end_date, epid_start_date + 548), # allowed to run for 1.5 years 
     model_age_groups,
@@ -296,6 +304,7 @@ many_flu <- function(
                  (as.numeric(substr(vacc_calendar_start,4,5)) <
                     as.numeric(substr(ageing_date,4,5))))
     vaccine_used_row <- waning_dt[year %in% row]
+    
 
     
     flu_epid_output <- one_flu(
@@ -329,14 +338,19 @@ many_flu <- function(
     ## merge outputs
     if(epidemic_i == 1){
       output_dt <- flu_epid_output
+      test_dt <- flu_epid_output
+      test_dt$time_epidemic <- epid_data$epid_start_date
     }else{
       output_dt[,2:17] <- output_dt[,2:17] + flu_epid_output[,2:17]
+      flu_epid_output_comb <- flu_epid_output
+      flu_epid_output_comb$time_epidemic <- epid_data$epid_start_date
+      test_dt <- rbind(test_dt, flu_epid_output_comb)
     }
     
   }
   
-  trial <- list(output_dt, flu_epid_output)
-  return(trial)
+  combined_output <- list(output_dt, flu_epid_output, test_dt)
+  return(combined_output)
   #output_dt ## return epidemics
   
 }
@@ -470,7 +484,6 @@ dfn_vaccine_calendar_cov <- function(
 
   coverage_matrix <- matrix(0, nrow = length(dates_to_run), ncol = no_age_groups)
   
-  print(coverage_matrix)
   
   vc <- as_vaccination_calendar(
     dates = dates_to_run,

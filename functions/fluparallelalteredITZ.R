@@ -20,9 +20,9 @@ Hemisphere_matching <- function(epi_initial_ds, hemisphere){
   return(vec)
 }
 
-converting_epidemic_code <- function(itz_input,years_of_analysis,simulations, ageing_date){
+converting_epidemic_code <- function(itz_input,years_of_analysis,simulation_set, ageing_date){
   sampled_epids <- data.table(read_csv(here::here('data','epi','sampled_epids',paste0('sampled_epidemics_30_100_',itz_input,'_wr0.csv')), show_col_types=F))
-  epids <- sampled_epids[simulation_cal_year <= years_of_analysis & simulation_index <= simulations]
+  epids <- sampled_epids[simulation_cal_year <= years_of_analysis & simulation_index %in% simulation_set]
   Converting_epidemics_dataset <- epids %>% select(simulation_index, sus, trans, contains('match'), strain, day, month, year, simulation_cal_year,
                                                    pushback, init_ageing_date, init_nye, r0)
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% rename(susceptibility=sus, transmissibility=trans, r0_to_scale=r0)
@@ -91,6 +91,7 @@ flu_parallel_ITZ <- function(vaccine_type){
     init_vaccinated = c(0,0,0,0),
     model_age_groups
   )
+  
   # demography_dt %>% mutate(prop = value/total_as) %>% filter(V==T) %>% ggplot() + geom_line(aes(week, prop, col=age_grp))
   if(min(demography_dt$value) < 0){ # quick fix if any vaccination issues (there shouldn't be)
     print(paste0('Negative values in demography_dt, iso3c = ', iso3c_input,', vaccine type = ', vaccine_type))
@@ -98,9 +99,14 @@ flu_parallel_ITZ <- function(vaccine_type){
   
   mf_output <- data.table()
   pan_output <- data.table()
-
+  combined_output <- data.table()
+  combined_output2 <- data.table()
+  combined_output3 <- data.table()
+  
+  
   # loop over 1:100 simulations
-  for(sim_index in unique(epid_dt$simulation_index)){
+  #for(sim_index in unique(epid_dt$simulation_index)){
+  for(sim_index in unique(simulation_nos_input )){
     start_time <- Sys.time()
     
     # run flu simulations
@@ -117,6 +123,7 @@ flu_parallel_ITZ <- function(vaccine_type){
     )
     
     pandemic_only <- mf_output_si[[2]]
+    combined_trial <- mf_output_si[[3]]
     
 
     
@@ -132,6 +139,17 @@ flu_parallel_ITZ <- function(vaccine_type){
       print(paste0('vt = ', vaccine_type, ', sim_index = ', sim_index, ' - is.na'))
     }
   
+    
+    combined_trial <- combined_trial[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 
+    combined_trial[, vacc_type := names(vacc_type_list)[vaccine_type]] # add vaccine name
+    combined_trial[, simulation_index := sim_index] # add simulation number
+    
+    
+    # printing if there is an NA error (shouldn't happen)
+    if(is.na(sum(rowSums(combined_trial %>% select(starts_with('I')))))){
+      print(paste0('vt = ', vaccine_type, ', sim_index = ', sim_index, ' - is.na'))
+    }
+    
     
     mf_output_si <- mf_output_si[[1]]
     
@@ -159,6 +177,27 @@ flu_parallel_ITZ <- function(vaccine_type){
       pan_output <- rbind(pan_output, pandemic_only)
     }
     
+    #if(nrow(combined_output)==0 & sim_index <= 33){
+    #  combined_output <- combined_trial
+    #}else if (sim_index <= 33 & nrow(combined_output)>0 ){
+    #  combined_output <- rbind(combined_output, combined_trial)
+    #} else if (nrow(combined_output2)==0 & sim_index > 33 & sim_index <= 66){
+    #  combined_output2 <- combined_trial
+    #} else if (sim_index > 33 & sim_index <= 66 & nrow(combined_output)>0){
+    #  combined_output2 <- rbind(combined_output2, combined_trial)
+    #}else if (nrow(combined_output2)==0 & sim_index > 66){
+    #  combined_output3 <- combined_trial
+    #} else if (sim_index > 66  & nrow(combined_output)>0){
+    #  combined_output3 <- rbind(combined_output3, combined_trial)
+    #}
+    
+    if(nrow(combined_output)==0 ){
+      combined_output <- combined_trial
+    }else if (nrow(combined_output)>0 ){
+      combined_output <- rbind(combined_output, combined_trial)
+    }
+    
+    
     # if(!file.exists(here::here('output','data','epi',paste0(itz_input,'_text')))){
     #   dir.create(file.path(here::here('output','data','epi',paste0(itz_input,'_text'))))
     # }
@@ -173,7 +212,9 @@ flu_parallel_ITZ <- function(vaccine_type){
     
   }
   
-  trial <- list(mf_output, pan_output)
+  #trial <- list(mf_output, pan_output, combined_output, combined_output2, combined_output3)
+  
+  trial <- list(mf_output, pan_output, combined_output)
   
   return(trial)
   

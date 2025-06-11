@@ -207,7 +207,10 @@ flu_odin <- odin::odin({
   deriv(E2v[]) <- - omega*E2v[i] + gamma1 * (E1v[i] - E2v[i]) + v[i] * E2[i]
   deriv(I1v[]) <- - omega*I1v[i] + gamma1 * E2v[i]  - gamma2 * I1v[i] + v[i] * I1[i]
   deriv(I2v[]) <- - omega*I2v[i] + gamma2 * (I1v[i] - I2v[i]) + v[i] * I2[i]
-  deriv(Rv[])  <- - omega*Rv[i]  + gamma2 * I2v[i] + v[i] * (R[i] + alpha[i] * S[i])
+  deriv(Rv[])  <- - omega*Rv[i]  + gamma2 * I2v[i] + v[i] * (R[i] + alpha[i] * S[i])- newInfvR[i]
+  #derivative Rv = derivate of Rv plus either the Rev or RnVR. 
+  deriv(Rv[])  <- - omega*Rv[i]  + gamma2 * I2v[i] + v[i] * (R[i]) + vacc_stop_inf*(gammav2 * I2vR[i]) + (1-vacc_stop_inf)*(v[i] * (alpha[i] * S[i]) - newInfvR[i])
+  
   deriv(Rnv[])  <- - omega*Rnv[i]  + gamma2 * I2v[i] + v[i] * (R[i])
   #add to this that those in Rev can have the same infection leaving but can set to 0 for the sterilising case
   #will need to have the vaccinated ones having a pathway through but in the sterililising case this will not be used

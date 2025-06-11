@@ -25,7 +25,8 @@ years_of_analysis <- 30
 
 
 
-simulations <-3
+simulations <-100
+#simulations <-1
 
 ageing <- T # are the populations being aged in the simulations?
 key_dates <- c('01-04', '01-10') # vaccination and ageing dates (hemisphere-dependent)
@@ -76,8 +77,8 @@ if(vaccine_variable == 'coverage'){
   cov_val <- 0.5
   
   # define age groups targeted, e.g. here <10yos and 65+yos
-  cov_ages <- c(0:10, 65:101)
-  
+  #cov_ages <- c(0:10, 65:101)
+  cov_ages <- c(0:10)
   # what % coverage in each model age group?
   cov_vec <- coverage_vector(cov_ages, cov_val, model_age_groups)
   
@@ -97,9 +98,9 @@ vacc_calendar_start <<- ifelse(hemisphere_input=='NH', key_dates[2], key_dates[1
 
 
 seasonal_flu_included <- c('TRUE', 'FALSE')[1]
-pandemic_flu_included <- c('TRUE', 'FALSE')[1]
+pandemic_flu_included <- c('TRUE', 'FALSE')[2]
 
-pandemic_year_chosen <- 2
+pandemic_year_chosen <- 30
 
 disease_scenarios <- c('1918', '1957', '2009')[1]
 if (disease_scenarios == '1918'){
@@ -123,7 +124,7 @@ if (seasonal_flu_included == 'TRUE'){
   epidemic_data <- converting_epidemic_code(itz_input,years_of_analysis,simulations, ageing_date)
   epid_dt <<- selecting_pandemic_parameters(epidemic_data, pandemic_year_chosen, disease_scenarios, simulations)
 } else{
-  epid_dt <<- selecting_pandemic_parameters(NA, pandemic_year_chosen, disease_scenarios)
+  epid_dt <<- selecting_pandemic_parameters(NA, pandemic_year_chosen, disease_scenarios, simulations)
 }
 
 
@@ -160,6 +161,9 @@ iso3c_input <- 'GBR'
 #trialling code
 source(here::here('functions/fluparallelalteredITZ.R'))
 #infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=1)
+simulations <-1
+
+infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=1)
 
 infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
 all_epid <- list(infs_rds_list[[1]][[1]], infs_rds_list[[2]][[1]], infs_rds_list[[3]][[1]], infs_rds_list[[4]][[1]], infs_rds_list[[5]][[1]], infs_rds_list[[6]][[1]])

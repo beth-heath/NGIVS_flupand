@@ -812,6 +812,7 @@ fcn_annual_doses <- function(country,
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
   }else{
+     #days2 <- seq.Date(from = action_week, to = dates[3] + 6, by = 1) 
     days2 <- seq.Date(from = action_week, to = dates[2] + 6, by = 1) 
     dates_to_run <- seq.Date(from = days2[1], 
                              to = days2[length(days2)],
@@ -864,7 +865,7 @@ fcn_annual_doses <- function(country,
   }
   action_week <- dates_to_run[length(dates_to_run)]
   
-  if(vacc_first == T){
+  if(vacc_first == T & length(dates)>2){
     births <- CBR*sum(output[output$week == action_week,columns])
     output[output$week == action_week,c('U1', 'U2', 'U3', 'U4')] <- c(births,0,0,0) + unname(unlist(output[output$week == action_week,c('U1', 'U2', 'U3', 'U4')]))%*%RH_matrix
     output[output$week == action_week,c('V1', 'V2', 'V3', 'V4')] <- unname(unlist(output[output$week == action_week,c('V1', 'V2', 'V3', 'V4')]))%*%RH_matrix
@@ -901,8 +902,10 @@ fcn_annual_doses <- function(country,
     ) %>% mutate(t = as.Date(t))
     
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
-  }else{
+  }else if(vacc_first == F & length(dates)>2){
+    #changed to have as three rather than two
     days2 <- seq.Date(from = action_week, to = dates[3] + 6, by = 1) 
+     
     dates_to_run <- seq.Date(from = days2[1], 
                              to = days2[length(days2)],
                              by = 7) # days by week
@@ -1138,13 +1141,16 @@ fcn_annual_doses <- function(country,
     output[output$week %in% dates_to_run,columns] <- input2 %>% select(!c(t))
   }
   
-  output_v <- output %>% select(country, year, starts_with('vacc')) %>% 
-    pivot_longer(!c(country,year)) %>% mutate(age_grp = substr(name,6,6)) %>% 
-    group_by(country, year, age_grp) %>% summarise(vaccs = max(value))
+  output_v <- output %>% select(country, week, starts_with('vacc')) %>% 
+    pivot_longer(!c(country,week)) %>% mutate(age_grp = substr(name,6,6)) %>% 
+    group_by(country,week, age_grp) %>% summarise(vaccs = max(value))
   
   output_v$age_grp <- factor(output_v$age_grp, levels=unique(output_v$age_grp))
   
+  
+  
   output_v <- data.table(output_v)
+  
   
   return(output_v)
   
