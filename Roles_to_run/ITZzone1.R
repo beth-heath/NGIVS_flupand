@@ -4,7 +4,7 @@ set.seed(123)
 
 
 #### load relevant packages ####
-library(here)
+#library(here)
 source(here::here('setup','packages.R'))
 
 #### colour schemes etc. ####

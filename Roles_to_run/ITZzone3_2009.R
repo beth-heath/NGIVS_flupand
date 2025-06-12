@@ -1,4 +1,3 @@
-
 set.seed(123)
 
 #### load relevant packages ####
@@ -63,7 +62,7 @@ source(here::here('functions/fluparallelalteredITZ.R'))
 
 
 
-continent <- 1
+continent <- 3
 
 c_name <- c("Africa", "Asia-Europe", "Eastern and Southern Asia",
             "Europe", "Northern America", "Oceania-Melanesia-Polynesia",
@@ -78,7 +77,7 @@ ageing_day <<- as.numeric(substr(ageing_date, 1, 2))
 ageing_month <<- as.numeric(substr(ageing_date, 4, 5))
 vacc_calendar_start <<- ifelse(hemisphere_input=='NH', key_dates[2], key_dates[1])
 
-load("1918_combined_set.Rdata")
+load("2009_combined_set.Rdata")
 pand_dt <- pandemic_combined
 
 
@@ -110,7 +109,7 @@ for (age_groups in 1:5){
     
     infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
     
-
+    
     overall_file1 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
     overall_dt1 <- rbindlist(overall_file1)
     overall_dt1 <- arrow_table(overall_dt1)
