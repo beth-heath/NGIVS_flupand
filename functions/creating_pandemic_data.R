@@ -110,16 +110,16 @@ Pandemic_addition_function <- function(original_epi_data, simulations, pandemic_
   return(original_epi_data)
 }
 
-pandemic_example <- Pandemic_addition_function(pan_dt, 100, 0, c(0.80, 0.9), c(0.07249, 0.09834), c(0.7,0.9), NA,
+pandemic_example <- Pandemic_addition_function(pan_dt, 100, 0, c(0.80, 0.95), c(0.07249, 0.09834), c(0.8,0.95), NA,
                                                     2025, 30, creating_dates)
+save(pandemic_example, file='1918_pandemic_samples.Rdata')
 
-pandemic_example<- Pandemic_addition_function(pan_dt, 100, 0, c(0.60, 0.8), c(0.07249, 0.09834), c(0.8,0.9), NA,
+pandemic_example<- Pandemic_addition_function(pan_dt, 100, 0, c(0.60, 0.8), c(0.07249, 0.09834), c(0.7,0.9), NA,
                                                     2025, 30, creating_dates)
-
+save(pandemic_example, file='1957_pandemic_samples.Rdata')
 pandemic_example<- Pandemic_addition_function(pan_dt, 100, 0, c(0.50, 0.7), c(0.07249, 0.09834), c(0.8,0.95), NA,
                                                    2025, 30, creating_dates)
-save(pandemic_example, file='1918_pandemic_samples.Rdata')
-save(pandemic_example, file='1957_pandemic_samples.Rdata')
+
 save(pandemic_example, file='2009_pandemic_samples.Rdata')
 
 ## To do - have a function that:
@@ -176,11 +176,16 @@ pandemic_combined <- pandemic_example
 pandemic_combined$epid_start_date <- pandemic_combined$epid_start_date  %m+% months(12)
 pandemic_combined$start_date_late <- pandemic_combined$start_date_late  %m+% months(12)
 pandemic_combined$year_pandemic <- rep(1, nrow(pandemic_combined))
+pandemic_combined$true_sim_no <- pandemic_combined$simulation_index
+
 for (pand_time in 2:28){
   
   addition_version <- pandemic_example
   addition_version$epid_start_date <- addition_version$epid_start_date  %m+% months(12*pand_time)
   addition_version$start_date_late <- addition_version$start_date_late  %m+% months(12*pand_time)
+  addition_version$true_sim_no <- addition_version$simulation_index
+  addition_version$simulation_index <- addition_version$simulation_index + 100*(pand_time-1)
+  
   addition_version$year_pandemic <- rep(pand_time, nrow(pandemic_example))
   pandemic_combined <- rbind(pandemic_combined, addition_version)
   
@@ -195,11 +200,17 @@ pandemic_combined <- pandemic_example
 pandemic_combined$epid_start_date <- pandemic_combined$epid_start_date  %m+% months(12)
 pandemic_combined$start_date_late <- pandemic_combined$start_date_late  %m+% months(12)
 pandemic_combined$year_pandemic <- rep(1, nrow(pandemic_combined))
+pandemic_combined$true_sim_no <- pandemic_combined$simulation_index
+
+
 for (pand_time in 2:28){
   
   addition_version <- pandemic_example
   addition_version$epid_start_date <- addition_version$epid_start_date  %m+% months(12*pand_time)
   addition_version$start_date_late <- addition_version$start_date_late  %m+% months(12*pand_time)
+  addition_version$true_sim_no <- addition_version$simulation_index
+  addition_version$simulation_index <- addition_version$simulation_index + 100*(pand_time-1)
+  
   addition_version$year_pandemic <- rep(pand_time, nrow(pandemic_example))
   pandemic_combined <- rbind(pandemic_combined, addition_version)
   
@@ -213,11 +224,16 @@ pandemic_combined <- pandemic_example
 pandemic_combined$epid_start_date <- pandemic_combined$epid_start_date  %m+% months(12)
 pandemic_combined$start_date_late <- pandemic_combined$start_date_late  %m+% months(12)
 pandemic_combined$year_pandemic <- rep(1, nrow(pandemic_combined))
+pandemic_combined$true_sim_no <- pandemic_combined$simulation_index
+
 for (pand_time in 2:28){
   
   addition_version <- pandemic_example
   addition_version$epid_start_date <- addition_version$epid_start_date  %m+% months(12*pand_time)
   addition_version$start_date_late <- addition_version$start_date_late  %m+% months(12*pand_time)
+  addition_version$true_sim_no <- addition_version$simulation_index
+  addition_version$simulation_index <- addition_version$simulation_index + 100*(pand_time-1)
+  
   addition_version$year_pandemic <- rep(pand_time, nrow(pandemic_example))
   pandemic_combined <- rbind(pandemic_combined, addition_version)
   
