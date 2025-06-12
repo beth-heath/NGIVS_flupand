@@ -2,8 +2,10 @@
 
 library(devtools)
 
-install_github("PPgp/wpp2022")
-install_github("MJomaba/flu-evidence-synthesis", dependencies = TRUE)
+#install_github("PPgp/wpp2022")
+#install_github("MJomaba/flu-evidence-synthesis", dependencies = TRUE)
+install.packages('arrow')
+
 
 library(arrow)
 library(readr)

@@ -118,7 +118,7 @@ for (age_groups in 1:5){
     
     
     #saveRDS(overall_dt1, file = here::here('outputs(0-33)',paste0(c_name, 'Epidemic_overall',countries,age_groups,'.rds')))
-    saveRDS(overall_dt1, file = here::here(paste0('Africa(0-33)',countries,age_groups,'.rds')))
+    saveRDS(overall_dt1, file = here::here(paste0('Africa1',countries,age_groups,'.rds')))
     rm(overall_file1 )
     rm(overall_dt1)
     
@@ -132,7 +132,7 @@ for (age_groups in 1:5){
     overall_file2 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
     overall_dt2 <- rbindlist(overall_file2)
     overall_dt2 <- arrow_table(overall_dt2)
-    saveRDS(overall_dt2, file = here::here(paste0('Africa(34-66)',countries,age_groups,'.rds')))
+    saveRDS(overall_dt2, file = here::here(paste0('Africa2',countries,age_groups,'.rds')))
     rm(overall_file2 )
     rm(overall_dt2)
     
@@ -143,7 +143,8 @@ for (age_groups in 1:5){
     overall_file3 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
     #run each of these save the summary file then remove with rm
     overall_dt3 <- rbindlist(overall_file3)
-    saveRDS(overall_dt3, file = here::here('outputs','data',paste0('Africa(67-100)',countries,age_groups,'.rds')))
+    overall_dt3 <- arrow_table(overall_dt3)
+    saveRDS(overall_dt3, file = here::here(paste0('Africa3',countries,age_groups,'.rds')))
     rm(overall_file3 )
     rm(overall_dt3)
     
