@@ -4,9 +4,8 @@ library(devtools)
 
 #install_github("PPgp/wpp2022")
 #install_github("MJomaba/flu-evidence-synthesis", dependencies = TRUE)
-install.packages('arrow')
 
-
+library(here)
 library(arrow)
 library(readr)
 suppressPackageStartupMessages(library(dplyr))
