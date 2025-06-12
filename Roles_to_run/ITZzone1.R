@@ -6,10 +6,10 @@ set.seed(123)
 #### load relevant packages ####
 #library(here)
 source(here::here('setup','packages.R'))
-
+print('test1')
 #### colour schemes etc. ####
 # same as https://github.com/lucy-gf/flu_model_LG
-source(here::here('setup','aesthetics.R'))
+#source(here::here('setup','aesthetics.R'))
 
 ################################################
 ############## set key parameters ##############
@@ -19,7 +19,7 @@ model_age_groups <- c(0,5,18,65)
 age_group_names <- paste0(model_age_groups,"-", c(model_age_groups[2:length(model_age_groups)],99))
 
 ### adding here the randomness of the dates
-
+print('test2')
 start_year_of_analysis <- 2025
 years_of_analysis <- 30
 
@@ -32,13 +32,13 @@ vacc_calendar_weeks <- 12 # number of weeks in vaccination program
 ################################################
 ################################################
 ################################################
-
+print('test3')
 #### load flu functions ####
 source(here::here('functions/fluparallelalteredITZ.R'))
 
 #loading in the pandemic addition function sets 
 source(here::here('functions/creating_pandemic_data.R'))
-
+print('test4')
 
 
 vaccine_variable <- c('doses','coverage')[2] # using MMGH doses or % coverage?
