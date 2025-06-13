@@ -310,7 +310,7 @@ flu_odin <- odin::odin({
   dim(RnvR) <- no_groups
   dim(cumIVR) <- no_groups
 
-})
+},verbose=TRUE,skip_cache=TRUE )
 
 #### VACCINATION-SPECIFIC DEMOGRAPHY ####
 fcn_vaccinated_demography <- function(
