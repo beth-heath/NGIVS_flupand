@@ -110,8 +110,8 @@ source(here::here('functions/fluparallelalteredITZ.R'))
       simulation_nos_input <- 1:33
       epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,1:33, ageing_date)
       epid_dt$susceptibility_for_kids <- epid_dt$susceptibility
-      #infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
-      infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=1)
+      infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+      #infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=1)
       overall_file1 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
       overall_dt1 <- rbindlist(overall_file1)
       overall_dt1 <- arrow_table(overall_dt1)
