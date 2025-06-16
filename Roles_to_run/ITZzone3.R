@@ -113,10 +113,13 @@ for (age_groups in 1:5){
     infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
     
     overall_file1 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
-    overall_dt1 <- rbindlist(overall_file1)
     rm(infs_rds_list)
+    gc()
+    overall_dt1 <- rbindlist(overall_file1)
+    
     rm(overall_file1 )
     gc()
+
     
     
     overall_dt1 <- arrow_table(overall_dt1)
@@ -135,9 +138,10 @@ for (age_groups in 1:5){
     epid_dt$susceptibility_for_kids <- epid_dt$susceptibility
     infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
     overall_file2 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
+    rm(infs_rds_list)
+    gc()
     overall_dt2 <- rbindlist(overall_file2)
     
-    rm(infs_rds_list)
     rm(overall_file2 )
     gc()
     
@@ -152,10 +156,14 @@ for (age_groups in 1:5){
     epid_dt$susceptibility_for_kids <- epid_dt$susceptibility
     infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
     overall_file3 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
+    
+    rm(infs_rds_list)
+    gc()
+    
     #run each of these save the summary file then remove with rm
     overall_dt3 <- rbindlist(overall_file3)
     
-    rm(infs_rds_list)
+    
     rm(overall_file3 )
     gc()
     
