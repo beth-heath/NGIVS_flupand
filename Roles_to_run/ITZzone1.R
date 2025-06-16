@@ -6,7 +6,7 @@ set.seed(123)
 #### load relevant packages ####
 #library(here)
 source(here::here('setup','packages.R'))
-print('test1')
+
 #### colour schemes etc. ####
 # same as https://github.com/lucy-gf/flu_model_LG
 #source(here::here('setup','aesthetics.R'))
@@ -19,7 +19,7 @@ model_age_groups <- c(0,5,18,65)
 age_group_names <- paste0(model_age_groups,"-", c(model_age_groups[2:length(model_age_groups)],99))
 
 ### adding here the randomness of the dates
-print('test2')
+
 start_year_of_analysis <- 2025
 years_of_analysis <- 30
 
@@ -32,13 +32,13 @@ vacc_calendar_weeks <- 12 # number of weeks in vaccination program
 ################################################
 ################################################
 ################################################
-print('test3')
+
 #### load flu functions ####
 source(here::here('functions/fluparallelalteredITZ.R'))
 
 #loading in the pandemic addition function sets 
 #source(here::here('functions/creating_pandemic_data.R'))
-print('test4')
+
 
 
 vaccine_variable <- c('doses','coverage')[2] # using MMGH doses or % coverage?
@@ -120,7 +120,7 @@ source(here::here('functions/fluparallelalteredITZ.R'))
       
       overall_dt1 <- arrow_table(overall_dt1)
       #saveRDS(overall_dt1, file = here::here('outputs(0-33)',paste0(c_name, 'Epidemic_overall',countries,age_groups,'.rds')))
-      saveRDS(overall_dt1, file = here::here(paste0('Africa(0-33)',countries,age_groups,'.rds')))
+      write_parquet(overall_dt1, sink = here::here('Run', paste0('Africa(0-33)',countries,age_groups,'.parquet')), compression = "zstd")
       
       
       rm(overall_dt1)
@@ -141,7 +141,8 @@ source(here::here('functions/fluparallelalteredITZ.R'))
       gc()
       
       overall_dt2 <- arrow_table(overall_dt2)
-      saveRDS(overall_dt2, file = here::here(paste0('Africa(34-66)',countries,age_groups,'.rds')))
+      
+      write_parquet(overall_dt2, sink = here::here('Run', paste0('Africa(34-66)',countries,age_groups,'.parquet')), compression = "zstd")
       
       
       rm(overall_dt2)
@@ -159,7 +160,7 @@ source(here::here('functions/fluparallelalteredITZ.R'))
       rm(overall_file3 )
       overall_dt3 <- arrow_table(overall_dt3)
       
-      saveRDS(overall_dt3, file = here::here(paste0('Africa(67-100)',countries,age_groups,'.rds')))
+      write_parquet(overall_dt3, sink = here::here('Run', paste0('Africa(67-100)',countries,age_groups,'.parquet')), compression = "zstd")
       rm(overall_dt3)
       gc()
       
