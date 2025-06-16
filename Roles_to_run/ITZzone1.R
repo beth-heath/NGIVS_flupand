@@ -160,6 +160,7 @@ source(here::here('functions/fluparallelalteredITZ.R'))
       
       rm(infs_rds_list)
       rm(overall_file3 )
+      gc()
       overall_dt3 <- arrow_table(overall_dt3)
       
       write_parquet(overall_dt3, sink = here::here('Run', paste0('Africa(67-100)',countries,age_groups,'.parquet')), compression = "zstd")

@@ -111,6 +111,7 @@ for (age_groups in 1:5){
     epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,1:33, ageing_date)
     epid_dt$susceptibility_for_kids <- epid_dt$susceptibility
     infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+    
     overall_file1 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
     overall_dt1 <- rbindlist(overall_file1)
     rm(infs_rds_list)
@@ -160,6 +161,8 @@ for (age_groups in 1:5){
     
     rm(infs_rds_list)
     rm(overall_file3 )
+    gc()
+    
     overall_dt3 <- arrow_table(overall_dt3)
     
     write_parquet(overall_dt3, sink = here::here('Run', paste0('Asia-Europe(67-100)',countries,age_groups,'.parquet')), compression = "zstd")
