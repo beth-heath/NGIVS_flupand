@@ -142,7 +142,7 @@ for (age_groups in 1:5){
     #run each of these save the summary file then remove with rm
     overall_dt3 <- rbindlist(overall_file3)
     overall_dt3 <- arrow_table(overall_dt3)
-    write_parquet(overall_dt1, sink = here::here('Run', paste0('Eastern and Southern Asia(67-100)',countries,age_groups,'.parquet')), compression = "zstd")
+    write_parquet(overall_dt3, sink = here::here('Run', paste0('Eastern and Southern Asia(67-100)',countries,age_groups,'.parquet')), compression = "zstd")
     rm(overall_file3 )
     rm(overall_dt3)
     
