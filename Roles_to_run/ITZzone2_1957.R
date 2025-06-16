@@ -47,6 +47,8 @@ cov_val <- 0.5
 
 # what % coverage in each model age group?
 
+vacc_type_list <- vacc_type_list_sterilising
+
 vaccine_strategy_pandemics <- c('sterilising', 'disease mod', 'infection period')[1]
 
 if (vaccine_strategy_pandemics == 'sterilising'){
@@ -112,13 +114,18 @@ for (age_groups in 1:5){
     
     overall_file1 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
     overall_dt1 <- rbindlist(overall_file1)
+    
+    rm(infs_rds_list)
+    rm(overall_file1 )
+    gc()
+    
     overall_dt1 <- arrow_table(overall_dt1)
     
     
     #saveRDS(overall_dt1, file = here::here('outputs(0-33)',paste0(c_name, 'Epidemic_overall',countries,age_groups,'.rds')))
-    saveRDS(overall_dt1, file = here::here(paste0('Africa1',countries,age_groups,'.rds')))
-    rm(overall_file1 )
+    write_parquet(overall_dt1, sink = here::here('Run', paste0('Asia-Europe1',countries,age_groups,'1957.parquet')), compression = "zstd")
     rm(overall_dt1)
+    gc()
     
     #overall_file2 <- list(infs_rds_list[[1]][[4]], infs_rds_list[[2]][[4]], infs_rds_list[[3]][[4]], infs_rds_list[[4]][[4]], infs_rds_list[[5]][[4]], infs_rds_list[[6]][[4]])
     #overall_file3 <- list(infs_rds_list[[1]][[5]], infs_rds_list[[2]][[5]], infs_rds_list[[3]][[5]], infs_rds_list[[4]][[5]], infs_rds_list[[5]][[5]], infs_rds_list[[6]][[5]])
@@ -129,10 +136,16 @@ for (age_groups in 1:5){
     infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
     overall_file2 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
     overall_dt2 <- rbindlist(overall_file2)
-    overall_dt2 <- arrow_table(overall_dt2)
-    saveRDS(overall_dt2, file = here::here(paste0('Africa2',countries,age_groups,'.rds')))
+    
+    rm(infs_rds_list)
     rm(overall_file2 )
+    gc()
+    
+    
+    overall_dt2 <- arrow_table(overall_dt2)
+    write_parquet(overall_dt2, sink = here::here('Run', paste0('Asia-Europe2',countries,age_groups,'1957.parquet')), compression = "zstd")
     rm(overall_dt2)
+    gc()
     
     simulation_nos_input <- 1981:2800
     epid_dt <- pand_dt %>% subset(simulation_index >1980)
@@ -141,10 +154,15 @@ for (age_groups in 1:5){
     overall_file3 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
     #run each of these save the summary file then remove with rm
     overall_dt3 <- rbindlist(overall_file3)
-    overall_dt3 <- arrow_table(overall_dt3)
-    saveRDS(overall_dt3, file = here::here(paste0('Africa3',countries,age_groups,'.rds')))
+    
+    rm(infs_rds_list)
     rm(overall_file3 )
+    gc()
+    
+    overall_dt3 <- arrow_table(overall_dt3)
+    write_parquet(overall_dt3, sink = here::here('Run', paste0('Asia-Europe3',countries,age_groups,'1957.parquet')), compression = "zstd")
     rm(overall_dt3)
+    gc()
     
   }
 }
