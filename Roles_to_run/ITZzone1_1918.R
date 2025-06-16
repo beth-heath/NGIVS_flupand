@@ -48,6 +48,8 @@ cov_val <- 0.5
 
 # what % coverage in each model age group?
 
+vacc_type_list <- vacc_type_list_sterilising
+
 vaccine_strategy_pandemics <- c('sterilising', 'disease mod', 'infection period')[1]
 
 if (vaccine_strategy_pandemics == 'sterilising'){
