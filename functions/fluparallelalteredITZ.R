@@ -61,6 +61,8 @@ converting_epidemic_code <- function(itz_input,years_of_analysis,simulation_set,
 ## only input is vaccine type, to parallelise over vt ##
 flu_parallel_ITZ <- function(vaccine_type){
   
+  set.seed(123)
+  
   # total_start_time <- Sys.time()
   
   dates_many_flu <- seq.Date(last_monday(min(epid_dt$period_start_date)), 

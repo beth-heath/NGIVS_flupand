@@ -118,10 +118,10 @@ source(here::here('functions/fluparallelalteredITZ.R'))
       rm(overall_file1 )
       gc()
       
-      overall_dt1 <- arrow_table(overall_dt1)
+      #overall_dt1 <- arrow_table(overall_dt1)
       #saveRDS(overall_dt1, file = here::here('outputs(0-33)',paste0(c_name, 'Epidemic_overall',countries,age_groups,'.rds')))
-      write_parquet(overall_dt1, sink = here::here('Run', paste0('Africa(0-33)',countries,age_groups,'.parquet')), compression = "zstd")
-      
+      #write_parquet(overall_dt1, sink = here::here('Run', paste0('Africa(0-33)',countries,age_groups,'.parquet')), compression = "zstd")
+      saveRDS(overall_dt1, file = here::here('Run', paste0('Asia-Europe(0-33)',countries,age_groups,'.rds')))
       
       rm(overall_dt1)
       gc()
@@ -140,9 +140,11 @@ source(here::here('functions/fluparallelalteredITZ.R'))
       rm(overall_file2 )
       gc()
       
-      overall_dt2 <- arrow_table(overall_dt2)
+      saveRDS(overall_dt2, file = here::here('Run', paste0('Asia-Europe(34-66)',countries,age_groups,'.rds')))
       
-      write_parquet(overall_dt2, sink = here::here('Run', paste0('Africa(34-66)',countries,age_groups,'.parquet')), compression = "zstd")
+      #overall_dt2 <- arrow_table(overall_dt2)
+      
+      #write_parquet(overall_dt2, sink = here::here('Run', paste0('Africa(34-66)',countries,age_groups,'.parquet')), compression = "zstd")
       
       
       rm(overall_dt2)
@@ -158,9 +160,11 @@ source(here::here('functions/fluparallelalteredITZ.R'))
       
       rm(infs_rds_list)
       rm(overall_file3 )
-      overall_dt3 <- arrow_table(overall_dt3)
+      #overall_dt3 <- arrow_table(overall_dt3)
       
-      write_parquet(overall_dt3, sink = here::here('Run', paste0('Africa(67-100)',countries,age_groups,'.parquet')), compression = "zstd")
+      #write_parquet(overall_dt3, sink = here::here('Run', paste0('Africa(67-100)',countries,age_groups,'.parquet')), compression = "zstd")
+      saveRDS(overall_dt3, file = here::here('Run', paste0('Asia-Europe(67-100)',countries,age_groups,'.rds')))
+      
       rm(overall_dt3)
       gc()
       
