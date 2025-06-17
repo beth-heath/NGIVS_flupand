@@ -108,18 +108,12 @@ for (age_groups in 1:5){
     simulation_nos_input <- 1:560
     epid_dt <- pand_dt %>% subset(simulation_index <561)
     
-    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+    infs_rds_list <- mclapply(1:length(vacc_type_list), function(i) flu_parallel_ITZ(i)[[3]], mc.cores=length(vacc_type_list))
     
-    
-    overall_file1 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
-    overall_dt1 <- rbindlist(overall_file1)
+    overall_dt1 <- rbindlist(infs_rds_list) %>% arrow_table()
     
     rm(infs_rds_list)
-    rm(overall_file1 )
     gc()
-    
-    overall_dt1 <- arrow_table(overall_dt1)
-    
     
     #saveRDS(overall_dt1, file = here::here('outputs(0-33)',paste0(c_name, 'Epidemic_overall',countries,age_groups,'.rds')))
     write_parquet(overall_dt1, sink = here::here('Run', paste0('Oceania-Melanesia-Polynesia',countries,age_groups,'1918_1.parquet')), compression = "zstd")
@@ -132,15 +126,12 @@ for (age_groups in 1:5){
     simulation_nos_input <- 561:1120
     epid_dt <- pand_dt %>% subset(simulation_index <1121 & simulation_index >560)
     
-    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
-    overall_file2 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
-    overall_dt2 <- rbindlist(overall_file2)
+    infs_rds_list <- mclapply(1:length(vacc_type_list), function(i) flu_parallel_ITZ(i)[[3]], mc.cores=length(vacc_type_list))
+    overall_dt2 <- rbindlist(infs_rds_list) %>% arrow_table()
     
     rm(infs_rds_list)
-    rm(overall_file2 )
     gc()
     
-    overall_dt2 <- arrow_table(overall_dt2)
     write_parquet(overall_dt2, sink = here::here('Run', paste0('Oceania-Melanesia-Polynesia',countries,age_groups,'1918_2.parquet')), compression = "zstd")
     rm(overall_dt2)
     gc()
@@ -148,16 +139,14 @@ for (age_groups in 1:5){
     simulation_nos_input <- 1121:1680
     epid_dt <- pand_dt %>% subset(simulation_index <1681 & simulation_index >1120)
     
-    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
-    overall_file3 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
+    infs_rds_list <- mclapply(1:length(vacc_type_list), function(i) flu_parallel_ITZ(i)[[3]], mc.cores=length(vacc_type_list))
+    
     #run each of these save the summary file then remove with rm
-    overall_dt3 <- rbindlist(overall_file3)
+    overall_dt3 <- rbindlist(infs_rds_list) %>% arrow_table()
     
     rm(infs_rds_list)
-    rm(overall_file3 )
     gc()
     
-    overall_dt3 <- arrow_table(overall_dt3)
     write_parquet(overall_dt3, sink = here::here('Run', paste0('Oceania-Melanesia-Polynesia',countries,age_groups,'1918_3.parquet')), compression = "zstd")
     rm(overall_dt3)
     gc()
@@ -165,16 +154,14 @@ for (age_groups in 1:5){
     simulation_nos_input <- 1681:2240
     epid_dt <- pand_dt %>% subset(simulation_index <2241 & simulation_index >1680)
     
-    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
-    overall_file4 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
+    infs_rds_list <- mclapply(1:length(vacc_type_list), function(i) flu_parallel_ITZ(i)[[3]], mc.cores=length(vacc_type_list))
+    
     #run each of these save the summary file then remove with rm
-    overall_dt4 <- rbindlist(overall_file4)
+    overall_dt4 <- rbindlist(infs_rds_list) %>% arrow_table()
     
     rm(infs_rds_list)
-    rm(overall_file4 )
     gc()
     
-    overall_dt4 <- arrow_table(overall_dt4)
     
     write_parquet(overall_dt4, sink = here::here('Run', paste0('Oceania-Melanesia-Polynesia',countries,age_groups,'1918_4.parquet')), compression = "zstd")
     
@@ -184,16 +171,14 @@ for (age_groups in 1:5){
     simulation_nos_input <- 2241:2800
     epid_dt <- pand_dt %>% subset(simulation_index >2240)
     
-    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
-    overall_file5 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
+    infs_rds_list <- mclapply(1:length(vacc_type_list), function(i) flu_parallel_ITZ(i)[[3]], mc.cores=length(vacc_type_list))
+    
     #run each of these save the summary file then remove with rm
-    overall_dt5 <- rbindlist(overall_file5)
+    overall_dt5 <- rbindlist(infs_rds_list) %>% arrow_table()
     
     rm(infs_rds_list)
-    rm(overall_file5 )
     gc()
     
-    overall_dt5 <- arrow_table(overall_dt5)
     
     write_parquet(overall_dt5, sink = here::here('Run', paste0('Oceania-Melanesia-Polynesia',countries,age_groups,'1918_5.parquet')), compression = "zstd")
     
