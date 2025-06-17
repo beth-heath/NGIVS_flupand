@@ -108,6 +108,7 @@ for (age_groups in 1:5){
     simulation_nos_input <- 1:990
     epid_dt <- pand_dt %>% subset(simulation_index <991)
     
+    
     infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
     
     
