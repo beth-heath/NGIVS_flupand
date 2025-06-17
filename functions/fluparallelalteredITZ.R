@@ -7,6 +7,17 @@ source(here::here('functions','demography.R'))
 # runs the flu model
 source(here::here('functions','flu_sim.R'))
 
+#function to reduce down the size of the files
+
+reduce_function <- function(dataset){
+  dataset$tot <- rowSums(dataset[,2:5])
+  dataset <- dataset[dataset$tot != 0, ]
+  return(dataset)
+  
+}
+
+
+
 #Functions to translate Lucy's previous files
 
 Hemisphere_matching <- function(epi_initial_ds, hemisphere){
@@ -216,7 +227,9 @@ flu_parallel_ITZ <- function(vaccine_type){
   
   #trial <- list(mf_output, pan_output, combined_output, combined_output2, combined_output3)
   
-  trial <- list(mf_output, pan_output, combined_output)
+  #trial <- list(mf_output, pan_output, combined_output)
+  
+  trial <- combined_output
   
   return(trial)
   
