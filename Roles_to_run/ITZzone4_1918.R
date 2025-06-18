@@ -102,6 +102,8 @@ for (age_groups in 1:5){
       cov_vec <- coverage_vector(cov_ages, cov_val, model_age_groups)
     } 
     
+    
+    
     iso3c_input <- countries
     print(countries)
     
@@ -109,6 +111,7 @@ for (age_groups in 1:5){
     epid_dt <- pand_dt %>% subset(simulation_index <561)
     
     infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+    
     
     overall_dt1 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     
