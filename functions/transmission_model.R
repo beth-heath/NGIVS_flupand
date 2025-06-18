@@ -50,6 +50,8 @@ incidence_VS <- function(
   
   poss_init_inf <- unname(population_stratified[1:4]*(1 - init_vaccinated*calendar_input$efficacy[1:4]))
   
+  printed <- F
+  
   if(sum(initial_infected_vector > poss_init_inf) > 0){
     if(printed==F){
       print('More initial infecteds than susceptibles')

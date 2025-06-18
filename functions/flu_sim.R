@@ -45,6 +45,7 @@ one_flu <- function(
     ## including the gamma variables in the calendar
     vacc_gammas <- c(vacc_details$gamma1_variable, vacc_details$gamma2_variable)
     vacc_stop_inf <- vacc_details$stop_infec_prob
+    
   } else{
     ## making sure dates are mondays!
     

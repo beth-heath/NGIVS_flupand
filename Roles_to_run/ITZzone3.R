@@ -110,7 +110,10 @@ for (age_groups in 1:5){
     simulation_nos_input <- 1:20
     epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,1:20, ageing_date)
     epid_dt$susceptibility_for_kids <- epid_dt$susceptibility
-    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+    #infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+    
+    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=1)
+    
     
     overall_dt1 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     
