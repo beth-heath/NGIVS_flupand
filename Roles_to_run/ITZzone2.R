@@ -107,67 +107,82 @@ for (age_groups in 1:5){
     iso3c_input <- countries
     print(countries)
     
-    simulation_nos_input <- 1:33
-    epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,1:33, ageing_date)
+    simulation_nos_input <- 1:20
+    epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,1:20, ageing_date)
     epid_dt$susceptibility_for_kids <- epid_dt$susceptibility
     infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
     
-    overall_file1 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
-    overall_dt1 <- rbindlist(overall_file1)
+    overall_dt1 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
+    
     rm(infs_rds_list)
-    rm(overall_file1 )
     gc()
     
-    overall_dt1 <- arrow_table(overall_dt1)
+    
     
     #saveRDS(overall_dt1, file = here::here('outputs(0-33)',paste0(c_name, 'Epidemic_overall',countries,age_groups,'.rds')))
     
-    write_parquet(overall_dt1, sink = here::here('Run', paste0('Asia-Europe(0-33)',countries,age_groups,'.parquet')), compression = "zstd")
-    
-    
+    write_parquet(overall_dt1, sink = here::here('Reduced_run','ITZzone2', paste0('Asia-Europe',countries,age_groups,'Epidemic_1.parquet')), compression = "zstd")
     rm(overall_dt1)
     gc()
     
     #overall_file2 <- list(infs_rds_list[[1]][[4]], infs_rds_list[[2]][[4]], infs_rds_list[[3]][[4]], infs_rds_list[[4]][[4]], infs_rds_list[[5]][[4]], infs_rds_list[[6]][[4]])
     #overall_file3 <- list(infs_rds_list[[1]][[5]], infs_rds_list[[2]][[5]], infs_rds_list[[3]][[5]], infs_rds_list[[4]][[5]], infs_rds_list[[5]][[5]], infs_rds_list[[6]][[5]])
     
-    simulation_nos_input <- 34:66
-    epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,34:66, ageing_date)
+    simulation_nos_input <- 21:40
+    epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,21:40, ageing_date)
     epid_dt$susceptibility_for_kids <- epid_dt$susceptibility
     infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
-    overall_file2 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
-    overall_dt2 <- rbindlist(overall_file2)
+    
+    overall_dt2 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     
     rm(infs_rds_list)
-    rm(overall_file2 )
     gc()
     
-    overall_dt2 <- arrow_table(overall_dt2)
     
-    
-    #saveRDS(overall_dt2, file = here::here(paste0('Asia-Europe(34-66)',countries,age_groups,'.rds')))
-    write_parquet(overall_dt2, sink = here::here('Run', paste0('Asia-Europe(34-66)',countries,age_groups,'.parquet')), compression = "zstd")
-    
+    write_parquet(overall_dt2, sink = here::here('Reduced_run','ITZzone2', paste0('Asia-Europe',countries,age_groups,'Epidemic_2.parquet')), compression = "zstd")
     rm(overall_dt2)
     gc()
     
-    simulation_nos_input <- 67:100
-    epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,67:100, ageing_date)
+    simulation_nos_input <- 41:60
+    epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,41:60, ageing_date)
     epid_dt$susceptibility_for_kids <- epid_dt$susceptibility
     infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
-    overall_file3 <- list(infs_rds_list[[1]][[3]], infs_rds_list[[2]][[3]], infs_rds_list[[3]][[3]], infs_rds_list[[4]][[3]], infs_rds_list[[5]][[3]], infs_rds_list[[6]][[3]])
-    #run each of these save the summary file then remove with rm
-    overall_dt3 <- rbindlist(overall_file3)
+    
+    overall_dt3 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     
     rm(infs_rds_list)
-    rm(overall_file3 )
     gc()
     
-    overall_dt3 <- arrow_table(overall_dt3)
-    
-    write_parquet(overall_dt3, sink = here::here('Run', paste0('Asia-Europe(67-100)',countries,age_groups,'.parquet')), compression = "zstd")
-    
+    write_parquet(overall_dt3, sink = here::here('Reduced_run','ITZzone2', paste0('Asia-Europe',countries,age_groups,'Epidemic_3.parquet')), compression = "zstd")
     rm(overall_dt3)
+    gc()
+    
+    simulation_nos_input <- 61:80
+    epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,61:80, ageing_date)
+    epid_dt$susceptibility_for_kids <- epid_dt$susceptibility
+    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+    
+    overall_dt4 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
+    
+    rm(infs_rds_list)
+    gc()
+    
+    write_parquet(overall_dt4, sink = here::here('Reduced_run','ITZzone2', paste0('Asia-Europe',countries,age_groups,'Epidemic_4.parquet')), compression = "zstd")
+    rm(overall_dt4)
+    gc()
+    
+    simulation_nos_input <- 81:100
+    epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,81:100, ageing_date)
+    epid_dt$susceptibility_for_kids <- epid_dt$susceptibility
+    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+    
+    overall_dt5 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
+    
+    rm(infs_rds_list)
+    gc()
+    
+    write_parquet(overall_dt5, sink = here::here('Reduced_run','ITZzone2', paste0('Asia-Europe',countries,age_groups,'Epidemic_5.parquet')), compression = "zstd")
+    rm(overall_dt5)
     gc()
     
   }
