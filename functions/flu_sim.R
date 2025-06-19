@@ -170,6 +170,7 @@ one_flu <- function(
   }
   
   country_name <- ifelse(country=='XKX', 'Kosovo', countrycode(country, origin='iso3c', destination='country.name'))
+
   
   ## making contact matrix wrt aged population
   contact_matrix <- fcn_contact_matrix(
