@@ -110,7 +110,9 @@ for (age_groups in 1:5){
     simulation_nos_input <- 1:560
     epid_dt <- pand_dt %>% subset(simulation_index <561)
     
-    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=1)
+    
+    #infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
     
     
     overall_dt1 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
