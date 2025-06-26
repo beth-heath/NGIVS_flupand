@@ -31,7 +31,7 @@ creating_dates <- rdate(100,
   )
 
 Pandemic_addition_function <- function(original_epi_data, simulations, pandemic_year_chosen, susceptibility_range, trans_range, sus_boost_for_children, r0,
-                                       start_year_of_analysis, length_analysis, creating_dates){
+                                       start_year_of_analysis, length_analysis, creating_dates, ageing_date){
   simulation_index<- seq(1,simulations, 1)
   #adding in random parts of susceptibility between certain bounds
   susceptibility <- runif(simulations, susceptibility_range[1], susceptibility_range[2])
@@ -50,8 +50,11 @@ Pandemic_addition_function <- function(original_epi_data, simulations, pandemic_
   original_date <- rep(NA, simulations)
   
   #ageing year start
-  ageing_year_start <- rep(2025+pandemic_year_chosen, simulations)
-  
+  ageing_year_start <- ifelse(
+    as.Date(paste0(start_year_of_analysis + pandemic_year_chosen, '-', ageing_date), format = "%Y-%d-%m") > start_date_late,
+    2025 + pandemic_year_chosen - 1,
+    2025 + pandemic_year_chosen
+  )
   #epidemic_start_date - in version put in the same as the start_date_late
   epid_start_date <- start_date_late
   
@@ -111,15 +114,16 @@ Pandemic_addition_function <- function(original_epi_data, simulations, pandemic_
 }
 
 pandemic_example <- Pandemic_addition_function(pan_dt, 100, 0, c(0.80, 0.95), c(0.07249, 0.09834), c(0.8,0.95), NA,
-                                                    2025, 30, creating_dates)
+                                                    2025, 30, creating_dates, '01-04')
 save(pandemic_example, file='1918_pandemic_samples.Rdata')
 
 pandemic_example<- Pandemic_addition_function(pan_dt, 100, 0, c(0.60, 0.8), c(0.07249, 0.09834), c(0.7,0.9), NA,
                                                     2025, 30, creating_dates)
 save(pandemic_example, file='1957_pandemic_samples.Rdata')
-pandemic_example<- Pandemic_addition_function(pan_dt, 100, 0, c(0.50, 0.7), c(0.07249, 0.09834), c(0.8,0.95), NA,
+#pandemic_example<- Pandemic_addition_function(pan_dt, 100, 0, c(0.50, 0.7), c(0.07249, 0.09834), c(0.8,0.95), NA,
+#                                                   2025, 30, creating_dates)
+pandemic_example<- Pandemic_addition_function(pan_dt, 100, 0, c(0.30, 0.5), c(0.07249, 0.09834), c(0.8,0.95), NA,
                                                    2025, 30, creating_dates)
-
 save(pandemic_example, file='2009_pandemic_samples.Rdata')
 
 ## To do - have a function that:
@@ -177,6 +181,7 @@ pandemic_combined$epid_start_date <- pandemic_combined$epid_start_date  %m+% mon
 pandemic_combined$start_date_late <- pandemic_combined$start_date_late  %m+% months(12)
 pandemic_combined$year_pandemic <- rep(1, nrow(pandemic_combined))
 pandemic_combined$true_sim_no <- pandemic_combined$simulation_index
+pandemic_combined$ageing_year_start <- pandemic_combined$ageing_year_start %m+% months(12)
 
 for (pand_time in 2:28){
   
@@ -185,6 +190,7 @@ for (pand_time in 2:28){
   addition_version$start_date_late <- addition_version$start_date_late  %m+% months(12*pand_time)
   addition_version$true_sim_no <- addition_version$simulation_index
   addition_version$simulation_index <- addition_version$simulation_index + 100*(pand_time-1)
+  addition_version$ageing_year_start <- addition_version$ageing_year_start  %m+% months(12*pand_time)
   
   addition_version$year_pandemic <- rep(pand_time, nrow(pandemic_example))
   pandemic_combined <- rbind(pandemic_combined, addition_version)
@@ -201,7 +207,7 @@ pandemic_combined$epid_start_date <- pandemic_combined$epid_start_date  %m+% mon
 pandemic_combined$start_date_late <- pandemic_combined$start_date_late  %m+% months(12)
 pandemic_combined$year_pandemic <- rep(1, nrow(pandemic_combined))
 pandemic_combined$true_sim_no <- pandemic_combined$simulation_index
-
+pandemic_combined$ageing_year_start <- pandemic_combined$ageing_year_start %m+% months(12)
 
 for (pand_time in 2:28){
   
@@ -210,6 +216,7 @@ for (pand_time in 2:28){
   addition_version$start_date_late <- addition_version$start_date_late  %m+% months(12*pand_time)
   addition_version$true_sim_no <- addition_version$simulation_index
   addition_version$simulation_index <- addition_version$simulation_index + 100*(pand_time-1)
+  addition_version$ageing_year_start <- addition_version$ageing_year_start  %m+% months(12*pand_time)
   
   addition_version$year_pandemic <- rep(pand_time, nrow(pandemic_example))
   pandemic_combined <- rbind(pandemic_combined, addition_version)
@@ -225,6 +232,7 @@ pandemic_combined$epid_start_date <- pandemic_combined$epid_start_date  %m+% mon
 pandemic_combined$start_date_late <- pandemic_combined$start_date_late  %m+% months(12)
 pandemic_combined$year_pandemic <- rep(1, nrow(pandemic_combined))
 pandemic_combined$true_sim_no <- pandemic_combined$simulation_index
+pandemic_combined$ageing_year_start <- pandemic_combined$ageing_year_start %m+% months(12)
 
 for (pand_time in 2:28){
   
@@ -233,6 +241,8 @@ for (pand_time in 2:28){
   addition_version$start_date_late <- addition_version$start_date_late  %m+% months(12*pand_time)
   addition_version$true_sim_no <- addition_version$simulation_index
   addition_version$simulation_index <- addition_version$simulation_index + 100*(pand_time-1)
+  addition_version$ageing_year_start <- addition_version$ageing_year_start  %m+% months(12*pand_time)
+  
   
   addition_version$year_pandemic <- rep(pand_time, nrow(pandemic_example))
   pandemic_combined <- rbind(pandemic_combined, addition_version)

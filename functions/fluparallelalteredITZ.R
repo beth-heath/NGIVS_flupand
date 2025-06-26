@@ -43,7 +43,7 @@ converting_epidemic_code <- function(itz_input,years_of_analysis,simulation_set,
                                                                                                            (start_year_of_analysis + simulation_cal_year - 1)), '%d-%m-%Y'),
                                                                           original_date = as.Date(paste0(as.numeric(day), '-', month, '-', year), '%d-%m-%Y') ) 
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% mutate(ageing_year_start = case_when(month(start_date_late) < ageing_month ~ start_year_of_analysis + simulation_cal_year - 2,
-                                                                                                        (month(start_date_late) = ageing_month) & (day(start_date_late) < ageing_day) ~ start_year_of_analysis + simulation_cal_year - 2,
+                                                                                                        (month(start_date_late) == ageing_month) & (day(start_date_late) < ageing_day) ~ start_year_of_analysis + simulation_cal_year - 2,
                                                                                                         T ~ start_year_of_analysis + simulation_cal_year - 1))
   
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% mutate(epid_start_date = case_when(!is.na(pushback) ~ start_date_late - pushback,
