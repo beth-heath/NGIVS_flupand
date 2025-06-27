@@ -8,7 +8,6 @@ library(here)
 source(here::here('setup','packages.R'))
 
 #### colour schemes etc. ####
-# same as https://github.com/lucy-gf/flu_model_LG
 source(here::here('setup','aesthetics.R'))
 
 ################################################
@@ -71,7 +70,7 @@ ageing_month <<- as.numeric(substr(ageing_date, 4, 5))
 vacc_calendar_start <<- ifelse(hemisphere_input=='NH', key_dates[2], key_dates[1])
 
 ### Selecting the pandemic used ###
-#note we must select both for the pandemic and for the hemisphere it is occuring in
+#note we must select both for the pandemic and for the hemisphere it is occurring in
 load("1918_combined_set_NH.Rdata")
 
 ### Setting up the simulation for all different age-groups tested and for all countries in the ITZ
@@ -99,7 +98,7 @@ for (age_groups in 1:5){
     iso3c_input <- countries
     print(countries)
     
-    # De to size of the files these have been split into five different sets to run so that they can run on HPC memory
+    # Due to size of the files these have been split into five different sets to run so that they can run on HPC memory
     
     #running for the first fifth of simulations
     simulation_nos_input <- 1:560
@@ -113,7 +112,7 @@ for (age_groups in 1:5){
     rm(infs_rds_list)
     gc()
     #writing the arrow table with further compression to reduce the size of the files
-    write_parquet(overall_dt1, sink = here::here('Reduced_run','ITZzone1', paste0('Africa',countries,age_groups,'1918_1.parquet')), compression = "zstd")
+    write_parquet(overall_dt1, sink = here::here('Reduced_run','ITZzone1', paste0('Africa',countries,age_groups,'1918_1s.parquet')), compression = "zstd")
     #remove all files from this segment to save space once again clearing the garbage can
     rm(overall_dt1)
     gc()
@@ -125,7 +124,7 @@ for (age_groups in 1:5){
     overall_dt2 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt2, sink = here::here('Reduced_run','ITZzone1', paste0('Africa',countries,age_groups,'1918_2.parquet')), compression = "zstd")
+    write_parquet(overall_dt2, sink = here::here('Reduced_run','ITZzone1', paste0('Africa',countries,age_groups,'1918_2s.parquet')), compression = "zstd")
     rm(overall_dt2)
     gc()
     
@@ -136,7 +135,7 @@ for (age_groups in 1:5){
     overall_dt3 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt3, sink = here::here('Reduced_run','ITZzone1', paste0('Africa',countries,age_groups,'1918_3.parquet')), compression = "zstd")
+    write_parquet(overall_dt3, sink = here::here('Reduced_run','ITZzone1', paste0('Africa',countries,age_groups,'1918_3s.parquet')), compression = "zstd")
     rm(overall_dt3)
     gc()
    
@@ -147,7 +146,7 @@ for (age_groups in 1:5){
     overall_dt4 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt4, sink = here::here('Reduced_run','ITZzone1', paste0('Africa',countries,age_groups,'1918_4.parquet')), compression = "zstd")
+    write_parquet(overall_dt4, sink = here::here('Reduced_run','ITZzone1', paste0('Africa',countries,age_groups,'1918_4s.parquet')), compression = "zstd")
     rm(overall_dt4)
     gc()
     
@@ -158,7 +157,7 @@ for (age_groups in 1:5){
     overall_dt5 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt5, sink = here::here('Reduced_run','ITZzone1', paste0('Africa',countries,age_groups,'1918_5.parquet')), compression = "zstd")
+    write_parquet(overall_dt5, sink = here::here('Reduced_run','ITZzone1', paste0('Africa',countries,age_groups,'1918_5s.parquet')), compression = "zstd")
     rm(overall_dt5)
     gc()
     

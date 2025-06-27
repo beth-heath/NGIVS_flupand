@@ -58,7 +58,7 @@ converting_epidemic_code <- function(itz_input,years_of_analysis,simulation_set,
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% mutate(epid_start_date = last_monday(epid_start_date))
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% select(!c(pushback,init_ageing_date,init_nye,day,month,year,simulation_cal_year))
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% mutate(period_start_date = as.Date(paste0('01-01-',start_year_of_analysis),format='%d-%m-%Y'), end_date = as.Date(paste0('01-01-',start_year_of_analysis + years_of_analysis),format='%d-%m-%Y'))
-  
+  Converting_epidemics_dataset$susceptibility_for_kids <- Converting_epidemics_dataset$susceptibility
   return(Converting_epidemics_dataset)
 }
 
