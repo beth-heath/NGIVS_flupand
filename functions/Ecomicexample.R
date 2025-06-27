@@ -507,17 +507,18 @@ healthcost_analysis <- function(DALY_file, cost_predic_c, country_of_interest){
 
 #loading in the doses datasets
 
-prices <- data.table(read_csv(here::here('data','MMGH','prices.csv'), show_col_types=F))
-country_specs <- data.table(read.xlsx(here::here('data','MMGH','country_specs.xlsx')))
+
+costs <- data.table(read_csv(here::here('data','econ','prices.csv'), show_col_types=F))
+country_specs <- data.table(read.xlsx(here::here('data','econ','country_specs.xlsx')))
 delivery_cost_samples <- data.table(read_csv(here::here('data','econ','delivery_cost_samples.csv'), show_col_types=F))
 
 
 #setting up the doses code
 
 doses_calculator <- function(country_specs, delivery_cost_samples, 
-                             country_of_interest, doses_info, wastage, dose_price, start_year_of_analysis,
-                             cost_discount_rate_val, age_policy, pandemic_year){
-  doses_info <-  read_rds(here::here('Rearranged_doses', paste0('Rearranged_dose_for', country_of_interest, '.rds')))
+                             country_of_interest, wastage, start_year_of_analysis,
+                             cost_discount_rate_val, age_policy, pandemic_year, costs){
+  doses_info <-  read_rds(here::here('data', 'Rearranged_doses', paste0('Rearranged_dose_for', country_of_interest, '.rds')))
   doses_info <- subset(doses_info, year_pandemic == pandemic_year)
   
   if (age_policy ==1){
@@ -533,22 +534,26 @@ doses_calculator <- function(country_specs, delivery_cost_samples,
   }
   
   
-  country_specs <- country_specs[country %in% country_of_interest]
+  
+  country_specs <- country_specs[country_specs$iso3c==country_of_interest, ]
   
   country_specs[, country_type := case_when(
-    country == 'USA' ~ 'us',
+    country_of_interest == 'USA' ~'USA',
     income_g == 'HIC' & !iso3c=='USA' ~ 'hics',
     income_g == 'UMIC' ~ 'umics',
     income_g %in% c('LMIC','LIC') & procure_mech == 'UNICEF' ~ 'lmic_un_proc',
     income_g %in% c('LMIC','LIC') & procure_mech == 'Self-procuring' ~ 'lmic_self_proc',
   )]
   
-  doses <- doses_info[country %in% country_of_interest]
-  print(doses)
+  selecting_pricing <- costs[costs$country_type==country_specs$country_type,  ]
+  selecting_pricing <- selecting_pricing %>% select(vacc_type, midpoint)
   
-  doses <- doses %>% mutate(doses_wastage = ceiling(vaccs*(1+wastage)))
+  doses <- doses_info %>% mutate(doses_wastage = ceiling(vaccs*(1+wastage)))
   
-  doses <- doses %>% mutate(dose_cost = doses_wastage*dose_price)
+  doses <- merge(doses, selecting_pricing, by = c('vacc_type'))
+  
+  
+  doses <- doses %>% mutate(dose_cost = doses_wastage*midpoint)
   
   delivery_cost <- delivery_cost_samples[iso3c %in% country_of_interest]
   

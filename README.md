@@ -1,8 +1,17 @@
-# next_gen_flu
+# Pandemics_project
 
-Reproducible flexible next-generation vaccine flu model. Takes some vaccine programs and epidemic data, and outputs weekly vaccination-status and age-specific influenza infections.
+Project that runs seasonal epidemics based on code from Goodfellow and includes pandemics based on the 1919, 1957 and 2009 pandemics.
 
-Based on <https://github.com/lucy-gf/flu_model_LG>
+
+Built from work from <https://github.com/lucy-gf/flu_model_LG>
+
+The project consists of five folders: data to include the data to run the code, functions including the functions contained in the code, setup which includes the files to download
+packages, Roles_to_run which included the scripts to run to produce the outputs for the analysis and Run_scripts which is the output from Run scripts.
+
+### `Roles_to_run\ITZzone*.R`
+
+This folder contains 70 files where each continent has a separate set of files with one that runs such for seasonal epidemics and then nine for the pandemics for the three pandemics and the three mechainsms of action of the pandemic vaccine.
+These files require no input from the user and need only run. 
 
 ### `vacc_types.R`
 
