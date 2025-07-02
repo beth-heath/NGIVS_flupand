@@ -94,7 +94,7 @@ flu_parallel_ITZ <- function(vaccine_input){
     
     
     vaccine_type <- vaccine_input %% 5 +1 
-    removing_zero <- names(vacc_type_list_pand)[2:6]
+    removing_zero <- c("A.1", "A.2", "B.1", "B.2", "C")
     vacc_name <- removing_zero[vaccine_type]
     
   } else {
