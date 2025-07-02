@@ -1,4 +1,4 @@
-### File for ITZzone2 (Asia-Europe) for a 1957-like pandemic with disease_modifying mechanism of action####
+### File for pandemics running ### 
 
 # setting seed 
 set.seed(123)
@@ -10,13 +10,22 @@ source(here::here('setup','packages.R'))
 #### colour schemes etc. ####
 source(here::here('setup','aesthetics.R'))
 
+#### Reading in the parameters ####
+
+#args <- commandArgs(trailingOnly = TRUE)
+#continent <- args[1]
+#pandemic_scenario <- args[2]
+
+continent <- 1
+pandemic_scenario <- 1
+
 ################################################
 ############## set key parameters ##############
 ################################################
 
 # these will be kept constant throughout the simulations
-
 model_age_groups <- c(0,5,18,65) #where the age cutoffs are
+age_group_names <- paste0(model_age_groups,"-", c(model_age_groups[2:length(model_age_groups)],99)) #names of the age-groups
 start_year_of_analysis <- 2025 #the age the analysis starts
 years_of_analysis <- 30 #studying for 30 years in keeping in Goodfellow et al paper
 simulations <-100 #the number of simulations
@@ -44,24 +53,15 @@ cov_val <- 0.5 #what % coverage in each model age group?
 
 vacc_type_list <- vacc_type_list_sterilising #setting the epidemic model used to have a sterilising mechanism of action
 
-#setting the vaccine strategy used in this work
-vaccine_strategy_pandemics <- c('sterilising', 'disease mod', 'infection period')[2]
-
-if (vaccine_strategy_pandemics == 'sterilising'){
-  vacc_type_list_pand <- vacc_type_list_sterilising
-} else if (vaccine_strategy_pandemics == 'disease mod'){
-  vacc_type_list_pand <- vacc_type_list_dis_mod
-} else if (vaccine_strategy_pandemics == 'infection period'){
-  vacc_type_list_pand <- vacc_type_list_reduced_infec
-}
 
 ### Setting the ITZ used ###
-
-continent <- 2
 
 c_name <- c("Africa", "Asia-Europe", "Eastern and Southern Asia",
             "Europe", "Northern America", "Oceania-Melanesia-Polynesia",
             "Southern America")[continent]
+condensed_c_name <- c("Africa", "Asia-Europe", "EasternandSouthernAsia",
+                      "Europe", "NorthernAmerica", "Oceania-Melanesia-Polynesia",
+                      "SouthernAmerica")[continent]
 itz_input <- c('GHA','TUR','CHN','GBR','CAN','AUS','ARG')[continent]
 hemisphere_input <- c('NH','NH','NH','NH','NH','SH','SH')[continent]
 ageing_date <<- ifelse(hemisphere_input=='NH', key_dates[1], key_dates[2])
@@ -72,7 +72,22 @@ vacc_calendar_start <<- ifelse(hemisphere_input=='NH', key_dates[2], key_dates[1
 
 ### Selecting the pandemic used ###
 #note we must select both for the pandemic and for the hemisphere it is occurring in
-load("1957_combined_set_NH.Rdata")
+
+
+if (pandemic_scenario == 1 & hemisphere_input == 'NH'){
+  load("1918_combined_set_NH.Rdata")
+} else if (pandemic_scenario == 1 & hemisphere_input == 'SH'){
+  load("1918_combined_set_SH.Rdata")
+}else if (pandemic_scenario == 2 & hemisphere_input == 'NH'){
+  load("1957_combined_set_NH.Rdata")
+} else if (pandemic_scenario == 2 & hemisphere_input == 'SH'){
+  load("1957_combined_set_SH.Rdata")
+}else if (pandemic_scenario == 3 & hemisphere_input == 'NH'){
+  load("2009_combined_set_NH.Rdata")
+}else if (pandemic_scenario == 3 & hemisphere_input == 'SH'){
+  load("2009_combined_set_SH.Rdata")
+}
+
 
 
 for (age_groups in 1:5){
@@ -105,14 +120,17 @@ for (age_groups in 1:5){
     # selecting the pandemic data for these
     epid_dt <- pandemic_combined %>% subset(simulation_index <561)
     #running the code for these
-    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list),mc.preschedule = FALSE)
+    infs_rds_list <- mclapply(1:16, flu_parallel_ITZ, mc.cores=16,mc.preschedule = FALSE)
+    infs_rds_list <- mclapply(1:16, flu_parallel_ITZ, mc.cores=1,mc.preschedule = FALSE)
+    
+    
     #reducing down into an arrow table
     overall_dt1 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     #removing the infs_rds_list file to save space and clearing garbage can
     rm(infs_rds_list)
     gc()
     #writing the arrow table with further compression to reduce the size of the files
-    write_parquet(overall_dt1, sink = here::here('Reduced_run','ITZzone2', paste0('Asia-Europe',countries,age_groups,'1957_1d.parquet')), compression = "zstd")
+    write_parquet(overall_dt1, sink = here::here('Reduced_run',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_1.parquet')), compression = "zstd")
     #remove all files from this segment to save space once again clearing the garbage can
     rm(overall_dt1)
     gc()
@@ -125,7 +143,7 @@ for (age_groups in 1:5){
     overall_dt2 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt2, sink = here::here('Reduced_run','ITZzone2', paste0('Asia-Europe',countries,age_groups,'1957_2d.parquet')), compression = "zstd")
+    write_parquet(overall_dt1, sink = here::here('Reduced_run',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_2.parquet')), compression = "zstd")
     rm(overall_dt2)
     gc()
     
@@ -136,7 +154,7 @@ for (age_groups in 1:5){
     overall_dt3 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt3, sink = here::here('Reduced_run','ITZzone2', paste0('Asia-Europe',countries,age_groups,'1957_3d.parquet')), compression = "zstd")
+    write_parquet(overall_dt1, sink = here::here('Reduced_run',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_3.parquet')), compression = "zstd")
     rm(overall_dt3)
     gc()
     
@@ -147,7 +165,7 @@ for (age_groups in 1:5){
     overall_dt4 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt4, sink = here::here('Reduced_run','ITZzone2', paste0('Asia-Europe',countries,age_groups,'1957_4d.parquet')), compression = "zstd")
+    write_parquet(overall_dt1, sink = here::here('Reduced_run',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_4.parquet')), compression = "zstd")
     rm(overall_dt4)
     gc()
     
@@ -158,15 +176,9 @@ for (age_groups in 1:5){
     overall_dt5 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt5, sink = here::here('Reduced_run','ITZzone2', paste0('Asia-Europe',countries,age_groups,'1957_5d.parquet')), compression = "zstd")
+    write_parquet(overall_dt1, sink = here::here('Reduced_run',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_5.parquet')), compression = "zstd")
     rm(overall_dt5)
     gc()
-    
-    
-    
   }
 }
-
-
-
 

@@ -2,13 +2,15 @@
 
 #### Reading in parameter values that will be used ####
 
-if (vaccine_strategy_pandemics == 'disease-mod'){
+
+if (vaccine_strategy_pandemics  %in% c('infection period', 'disease mod') ){
   dcr_infr <- 0.7
 }else{
   dcr_infr <- 1
 }
 
 
+wastage <- 0.1
 WTP_choice <- c('lancet','gdp')[1]
 WTP_GDP_ratio <- 1
 
@@ -98,7 +100,7 @@ calculating_deaths_for_seasonal <- function(dataset, country_of_interest, nation
 }
 
 
-calculating_deaths_for_pandemic <- function(dataset, year_of_interest, pandemic_ifrs, dcr_infr){
+calculating_deaths_for_pandemic <- function(dataset, year_of_interest, pandemic_ifrs, dcr_infr, case_proportion){
   
   ifrs_of_interest <- pandemic_ifrs[pandemic_scns==year_of_interest]
   
@@ -106,13 +108,13 @@ calculating_deaths_for_pandemic <- function(dataset, year_of_interest, pandemic_
   
   merged_dataset <- merge(edited_dataset, ifrs_of_interest[, .( age_grp, ifr)], by = c("age_grp"), all.x = TRUE)
   
-  merged_dataset <- merged_dataset %>% mutate(deaths = infection_nonvac*ifr + dcr_infr*infection_vac*ifr )
+  merged_dataset <- merged_dataset %>% mutate(deaths = infection_nonvac*ifr*case_proportion + dcr_infr*infection_vac*ifr*case_proportion )
   
   return(merged_dataset)
 }
 
 calculating_deaths_for_pandemic_updated <- function(dataset, year_of_interest, pandemic_ifrs, dcr_infr,
-                                                    country_of_interest, national_ifrs){
+                                                    country_of_interest, national_ifrs, case_proportion){
   #editing the original dataset
   edited_dataset <- long_form_data(dataset)
   
@@ -142,7 +144,7 @@ calculating_deaths_for_pandemic_updated <- function(dataset, year_of_interest, p
   
   
   merged_dataset <- merged_dataset %>% mutate(country_pandemic_ifr = (pandemic_ifr * ifr)/comparitive_ifr, 
-                                              deaths = infection_nonvac*country_pandemic_ifr + dcr_infr*infection_vac*country_pandemic_ifr )
+                                              deaths = case_proportion*infection_nonvac*country_pandemic_ifr + case_proportion*dcr_infr*infection_vac*country_pandemic_ifr )
   
   return(merged_dataset)
 }
@@ -150,30 +152,6 @@ calculating_deaths_for_pandemic_updated <- function(dataset, year_of_interest, p
 
 
 
-## creating an overall summary of deaths
-
-summary_overall_deaths <- function(epidemic_data, pandemic_data, country_of_interest, year_of_interest,
-                                   national_ifrs, pandemic_ifrs,dcr_infr ){
-  
-  seasonal_data <- calculating_deaths_for_seasonal(epidemic_data, country_of_interest, national_ifrs)
-  pandemic_data <- calculating_deaths_for_pandemic(pandemic_data, year_of_interest, pandemic_ifrs, dcr_infr)
-  combined_data <- merge(seasonal_data, pandemic_data, by=c("age_grp", "vacc_type", 'simulation_index', 'year') )
-  combined_data <- combined_data %>% mutate(combined_deaths = deaths.x + deaths.y)
-  summarising_over_age <- combined_data[, .(total_deaths = sum(combined_deaths)), by = .(vacc_type, simulation_index)]
-  return(summarising_over_age)
-}
-
-summary_overall_deaths_updated <- function(epidemic_data, pandemic_data, country_of_interest, year_of_interest,
-                                   national_ifrs, pandemic_ifrs, dcr_infr ){
-  
-  seasonal_data <- calculating_deaths_for_seasonal(epidemic_data, country_of_interest, national_ifrs)
-  pandemic_data <- calculating_deaths_for_pandemic_updated(pandemic_data, year_of_interest, pandemic_ifrs, dcr_infr,
-                                                           country_of_interest, national_ifrs)
-  combined_data <- merge(seasonal_data, pandemic_data, by=c("age_grp", "vacc_type", 'simulation_index', 'year') )
-  combined_data <- combined_data %>% mutate(combined_deaths = deaths.x + deaths.y)
-  summarising_over_age <- combined_data[, .(total_deaths = sum(combined_deaths)), by = .(vacc_type, simulation_index)]
-  return(summarising_over_age)
-}
 
 ##### IHRS ####
 
@@ -212,7 +190,8 @@ calculating_hosps_for_seasonal <- function(dataset, dcr_infr, global_ihrs, outpa
 #pandemic information
 
 calculating_hosps_for_pandemic <- function(dataset, year_of_interest, 
-                                           pandemic_ifrs, dcr_infr, hosp_ratio, outpatient_ratios,country_of_interest){
+                                           pandemic_ifrs, dcr_infr, hosp_ratio, outpatient_ratios,country_of_interest,
+                                           case_proportion){
   
   #creating the number of hospitilisations 
   ifrs_of_interest <- pandemic_ifrs[pandemic_scns==year_of_interest]
@@ -221,7 +200,7 @@ calculating_hosps_for_pandemic <- function(dataset, year_of_interest,
   
   merged_dataset <- merge(edited_dataset, ifrs_of_interest[, .( age_grp, ifr)], by = c("age_grp"), all.x = TRUE)
   
-  merged_dataset <- merged_dataset %>% mutate(hospitalisations = infection_nonvac*ifr*hosp_ratio + dcr_infr*infection_vac*ifr*hosp_ratio)
+  merged_dataset <- merged_dataset %>% mutate(hospitalisations = infection_nonvac*ifr*hosp_ratio*case_proportion + dcr_infr*infection_vac*ifr*hosp_ratio*case_proportion)
   
   #creating the number of outpatients from the number of hospitlisations
   
@@ -235,10 +214,10 @@ calculating_hosps_for_pandemic <- function(dataset, year_of_interest,
 }
 
 calculating_hosps_for_pandemic_updated <- function(dataset, year_of_interest, 
-                                           pandemic_ifrs, dcr_infr, hosp_ratio, outpatient_ratios,country_of_interest, national_ifrs){
+                                           pandemic_ifrs, dcr_infr, hosp_ratio, outpatient_ratios,country_of_interest, national_ifrs, case_proportion){
   
   death_dataset <- calculating_deaths_for_pandemic_updated(dataset, year_of_interest, pandemic_ifrs, dcr_infr,
-                                                           country_of_interest, national_ifrs)
+                                                           country_of_interest, national_ifrs, case_proportion)
   
   merged_dataset <- death_dataset %>% mutate(hospitalisations = deaths*hosp_ratio)
   
@@ -296,10 +275,10 @@ calculating_ylls_for_seasonal <- function(dataset, country_of_interest, national
 #### will need to add a different ylls for 1918 if chose to consider these seperately 
 
 calculating_ylls_for_pandemics <- function(dataset, country_of_interest, year_of_interest, pandemic_ifrs, dcr_infr,
-                                          yll_df){
+                                          yll_df, case_proportion){
   #finding the ifr for country of interest
   
-  merged_dataset <- calculating_deaths_for_pandemic(dataset, year_of_interest, pandemic_ifrs, dcr_infr)
+  merged_dataset <- calculating_deaths_for_pandemic(dataset, year_of_interest, pandemic_ifrs, dcr_infr, case_proportion)
   
   yll_of_interest <- yll_df[iso3c==country_of_interest]
   yll_of_interest$age_grp <- as.character(yll_of_interest$age_grp)
@@ -312,11 +291,11 @@ calculating_ylls_for_pandemics <- function(dataset, country_of_interest, year_of
 }
 
 calculating_ylls_for_pandemics_updated <- function(dataset, country_of_interest, year_of_interest, pandemic_ifrs, dcr_infr,
-                                           yll_df, national_ifrs){
+                                           yll_df, national_ifrs, case_proportion){
   #finding the ifr for country of interest
   
   merged_dataset <- calculating_deaths_for_pandemic_updated(dataset, year_of_interest, pandemic_ifrs, dcr_infr,
-                                                            country_of_interest, national_ifrs)
+                                                            country_of_interest, national_ifrs, case_proportion)
   
   yll_of_interest <- yll_df[iso3c==country_of_interest]
   yll_of_interest$age_grp <- as.character(yll_of_interest$age_grp)
@@ -336,7 +315,7 @@ DALY_weight_samples <- data.table(read_csv('data/econ/DALY_weight_samples.csv',
 
 flu_duration <- 4/365
 
-calculating_ylds_for_seasonal <- function(dataset, symp_samples,dcr_infr, global_ihrs, outpatient_ratios,country_of_interest){
+calculating_ylds_for_seasonal <- function(dataset, symp_samples,dcr_infr, global_ihrs, outpatient_ratios,country_of_interest, DALY_weight_samples){
   
   symptomatic_numbers <- calculating_symptomatics(dataset, symp_samples,dcr_infr)
   
@@ -360,13 +339,13 @@ calculating_ylds_for_seasonal <- function(dataset, symp_samples,dcr_infr, global
 
 calculating_ylds_for_pandemic <- function(dataset, symp_samples,dcr_infr, year_of_interest,hosp_ratio, 
                                           global_ihrs, outpatient_ratios,country_of_interest,
-                                          DALY_weight_samples){
+                                          DALY_weight_samples, case_proportion){
   
   symptomatic_numbers <- calculating_symptomatics(dataset, symp_samples,dcr_infr)
   
 
   hospital_numbers <- calculating_hosps_for_pandemic(dataset, year_of_interest, 
-                                                     pandemic_ifrs, dcr_infr, hosp_ratio, outpatient_ratios,country_of_interest)
+                                                     pandemic_ifrs, dcr_infr, hosp_ratio, outpatient_ratios,country_of_interest, case_proportion)
   
   merged_dataset <- merge(symptomatic_numbers, hospital_numbers[, .(age_grp, simulation_index, vacc_type ,hospitalisations, outpatients, year)], by = c("age_grp", "simulation_index", "vacc_type", 'year'), all.x = TRUE)
   
@@ -382,13 +361,13 @@ calculating_ylds_for_pandemic <- function(dataset, symp_samples,dcr_infr, year_o
 
 calculating_ylds_for_pandemic_updated <- function(dataset, symp_samples,dcr_infr, year_of_interest,hosp_ratio, 
                                           global_ihrs, outpatient_ratios,country_of_interest,
-                                          DALY_weight_samples, national_ifrs){
+                                          DALY_weight_samples, national_ifrs, case_proportion){
   
   symptomatic_numbers <- calculating_symptomatics(dataset, symp_samples,dcr_infr)
   
   
   hospital_numbers <- calculating_hosps_for_pandemic_updated(dataset, year_of_interest, 
-                                                             pandemic_ifrs, dcr_infr, hosp_ratio, outpatient_ratios,country_of_interest, national_ifrs)
+                                                             pandemic_ifrs, dcr_infr, hosp_ratio, outpatient_ratios,country_of_interest, national_ifrs, case_proportion)
   
   merged_dataset <- merge(symptomatic_numbers, hospital_numbers[, .(age_grp, simulation_index, vacc_type ,hospitalisations, outpatients, year)], by = c("age_grp", "simulation_index", "vacc_type", 'year'), all.x = TRUE)
   
@@ -407,13 +386,13 @@ calculating_ylds_for_pandemic_updated <- function(dataset, symp_samples,dcr_infr
 
 total_DALYS_for_seasonal <- function(dataset, symp_samples,dcr_infr, global_ihrs, outpatient_ratios,
                                      country_of_interest,
-                                     national_ifrs, yll_df){
+                                     national_ifrs, yll_df, DALY_weight_samples){
   
   ylds<- calculating_ylds_for_seasonal(dataset, symp_samples,dcr_infr, global_ihrs, outpatient_ratios,country_of_interest)
   
   ylls<- calculating_ylls_for_seasonal(dataset, country_of_interest, national_ifrs, yll_df)
   
-  merged_dataset <- merge(ylds, ylls[, .(age_grp, simulation_index, vacc_type ,YLLs, year)], by = c("age_grp", "simulation_index", "vacc_type", 'year'), all.x = TRUE)
+  merged_dataset <- merge(ylds, ylls[, .(age_grp, simulation_index, vacc_type ,YLLs, year, deaths)], by = c("age_grp", "simulation_index", "vacc_type", 'year'), all.x = TRUE)
   
   merged_dataset <- merged_dataset %>% mutate(total_DALYS = non_fever_DALYs + fever_DALYs + hosp_DALYs + YLLs)
   
@@ -427,16 +406,16 @@ total_DALYS_for_seasonal <- function(dataset, symp_samples,dcr_infr, global_ihrs
 
 total_DALYS_for_pandemic <- function(dataset, symp_samples,dcr_infr, year_of_interest,hosp_ratio, 
                                      global_ihrs, outpatient_ratios,country_of_interest,
-                                     DALY_weight_samples, pandemic_ifrs, yll_df){
+                                     DALY_weight_samples, pandemic_ifrs, yll_df, case_proportion){
   ylds<- calculating_ylds_for_pandemic(dataset, symp_samples,dcr_infr, year_of_interest,hosp_ratio, 
                                        global_ihrs, outpatient_ratios,country_of_interest,
-                                       DALY_weight_samples)
+                                       DALY_weight_samples, case_proportion)
   
   ylls<- calculating_ylls_for_pandemics(dataset, country_of_interest, year_of_interest, pandemic_ifrs, dcr_infr,
-                                        yll_df)
+                                        yll_df, case_proportion)
   
   
-  merged_dataset <- merge(ylds, ylls[, .(age_grp, simulation_index, vacc_type ,YLLs, year)], by = c("age_grp", "simulation_index", "vacc_type", 'year'), all.x = TRUE)
+  merged_dataset <- merge(ylds, ylls[, .(age_grp, simulation_index, vacc_type ,YLLs, year, deaths)], by = c("age_grp", "simulation_index", "vacc_type", 'year'), all.x = TRUE)
 
   
   merged_dataset <- merged_dataset %>% mutate(total_DALYS = non_fever_DALYs + fever_DALYs + hosp_DALYs + YLLs)
@@ -446,17 +425,17 @@ total_DALYS_for_pandemic <- function(dataset, symp_samples,dcr_infr, year_of_int
 
 total_DALYS_for_pandemic_updated <- function(dataset, symp_samples,dcr_infr, year_of_interest,hosp_ratio, 
                                      global_ihrs, outpatient_ratios,country_of_interest,
-                                     DALY_weight_samples, pandemic_ifrs, yll_df, national_ifrs){
+                                     DALY_weight_samples, pandemic_ifrs, yll_df, national_ifrs, case_proportion){
   ylds<- calculating_ylds_for_pandemic_updated(dataset, symp_samples,dcr_infr, year_of_interest,hosp_ratio, 
                                                global_ihrs, outpatient_ratios,country_of_interest,
-                                               DALY_weight_samples, national_ifrs)
+                                               DALY_weight_samples, national_ifrs, case_proportion)
   
   
   ylls<- calculating_ylls_for_pandemics_updated(dataset, country_of_interest, year_of_interest, pandemic_ifrs, dcr_infr,
-                                                yll_df, national_ifrs)
+                                                yll_df, national_ifrs, case_proportion)
   
   
-  merged_dataset <- merge(ylds, ylls[, .(age_grp, simulation_index, vacc_type ,YLLs, year)], by = c("age_grp", "simulation_index", "vacc_type", 'year'), all.x = TRUE)
+  merged_dataset <- merge(ylds, ylls[, .(age_grp, simulation_index, vacc_type ,YLLs, year, deaths)], by = c("age_grp", "simulation_index", "vacc_type", 'year'), all.x = TRUE)
   
   
   merged_dataset <- merged_dataset %>% mutate(total_DALYS = non_fever_DALYs + fever_DALYs + hosp_DALYs + YLLs)
@@ -609,25 +588,30 @@ Overall_economic_analysis <- function(seasonal_data_set, pandemic_data_set, symp
                                       national_ifrs, yll_df, year_of_interest, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
                                       cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
                                       cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
-                                      doses_info, wastage, dose_price){
+                                      doses_info, wastage, dose_price, case_proportion){
   
   #calculating the DALYS for seasonal and pandemic
   
   seasonal_DALYs <- total_DALYS_for_seasonal(seasonal_data_set, symp_samples,dcr_infr, global_ihrs, outpatient_ratios,
                                              country_of_interest,
-                                             national_ifrs, yll_df)
+                                             national_ifrs, yll_df, DALY_weight_samples)
   
   pandemic_DALYs <- total_DALYS_for_pandemic(pandemic_data_set, symp_samples,dcr_infr, year_of_interest,hosp_ratio, 
                                              global_ihrs, outpatient_ratios,country_of_interest,
-                                             DALY_weight_samples, pandemic_ifrs, yll_df)
+                                             DALY_weight_samples, pandemic_ifrs, yll_df, case_proportion)
   
-  merged_dataset <- merge(seasonal_DALYs, pandemic_DALYs, by=c('simulation_index', 'vacc_type', 'year', 'age_grp'))
+  pandemic_DALYs <- subset(pandemic_DALYs, select = c('simulation_index', 'vacc_type', 'year', 'age_grp', 'hospitalisations', 'outpatients', 'total_DALYS'))
+  seasonal_DALYs <- subset(seasonal_DALYs, select = c('simulation_index', 'vacc_type', 'year', 'age_grp', 'hospitalisations', 'outpatients', 'total_DALYS'))
+  merged_dataset <- rbind(seasonal_DALYs, pandemic_DALYs)
   
-  merged_dataset  <- merged_dataset  %>% mutate(hospitalisations = hospitalisations.x + hospitalisations.y,
-                                                outpatients = outpatients.x + outpatients.y,
-                                                total_DALYS = total_DALYS.x + total_DALYS.y)
-  
-  merged_subset<- subset(merged_dataset, select = c('simulation_index', 'vacc_type', 'year', 'age_grp', 'hospitalisations', 'outpatients', 'total_DALYS'))
+  merged_dataset <- merged_dataset %>%
+    group_by(simulation_index, vacc_type, year, age_grp) %>%
+    summarise(
+      hospitalisations = sum(hospitalisations),
+      outpatients = sum(outpatients),
+      total_DALYS = sum(total_DALYS),
+      .groups = 'drop'
+    )
   
   healthcareananalysis <- healthcost_analysis(merged_subset, cost_predic_c, country_of_interest)
   
@@ -653,25 +637,23 @@ Overall_economic_analysis <- function(seasonal_data_set, pandemic_data_set, symp
     )
   
   
-  merged_dataset <- merged_dataset %>% mutate(total_cost = discounted_doses_cost + discounted_epi_costs + discounted_DALYs_cost
-  )
+  merged_dataset <- merged_dataset %>% mutate(combined_epi = discounted_epi_costs +  discounted_DALYs_cost,
+                                              total_cost = discounted_epi_costs +  discounted_DALYs_cost + discounted_doses_cost)
   
-  #can summarise over the study period
   merged_dataset <- merged_dataset %>%
-    group_by(simulation_index, vacc_type) %>%
-    summarise(
-      discounted_epi_costs = sum(discounted_epi_costs),
-      discounted_DALYs_cost = sum(discounted_DALYs_cost),
-      total_cost = sum(total_cost),
-      discounted_doses_cost = sum(discounted_doses_cost),
-      vaccs = sum(vaccs),
-      .groups = 'drop'
+    # Create a temporary dataset of just the comparator values
+    left_join(
+      merged_dataset %>%
+        filter(vacc_type == 0) %>%
+        select(simulation_index, comparator_value = combined_epi),
+      by = "simulation_index"
     )
   
   
   #for the whole period dividing the other costs by the number of doses
   
-  merged_dataset <- merged_dataset %>% mutate(cost_by_dose = (discounted_epi_costs + discounted_DALYs_cost)/doses)
+  merged_dataset <- merged_dataset %>% mutate(cost_by_dose = (combined_epi - comparator_value)/vaccs)
+  
   
   
   return(merged_dataset)
@@ -685,17 +667,17 @@ Overall_economic_analysis_updated <- function(seasonal_data_set, pandemic_data_s
                                       national_ifrs, yll_df, year_of_interest, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
                                       cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
                                       cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
-                                      doses_info, wastage, dose_price, age_policy, pandemic_year){
+                                      doses_info, wastage, dose_price, age_policy, pandemic_year, case_proportion){
   
   #calculating the DALYS for seasonal and pandemic
   
   seasonal_DALYs <- total_DALYS_for_seasonal(seasonal_data_set, symp_samples,dcr_infr, global_ihrs, outpatient_ratios,
                                              country_of_interest,
-                                             national_ifrs, yll_df)
+                                             national_ifrs, yll_df, DALY_weight_samples)
   
   pandemic_DALYs <- total_DALYS_for_pandemic_updated(pandemic_data_set, symp_samples,dcr_infr, year_of_interest,hosp_ratio, 
                                                      global_ihrs, outpatient_ratios,country_of_interest,
-                                                     DALY_weight_samples, pandemic_ifrs, yll_df, national_ifrs)
+                                                     DALY_weight_samples, pandemic_ifrs, yll_df, national_ifrs, case_proportion)
   
   #merged_dataset <- merge(seasonal_DALYs, pandemic_DALYs, by=c('simulation_index', 'vacc_type', 'year', 'age_grp'))
   
@@ -757,10 +739,21 @@ Overall_economic_analysis_updated <- function(seasonal_data_set, pandemic_data_s
       .groups = 'drop'
     )
   
+  merged_dataset <- merged_dataset %>% mutate(combined_epi = discounted_epi_costs +  discounted_DALYs_cost)
+  
+  merged_dataset <- merged_dataset %>%
+    # Create a temporary dataset of just the comparator values
+    left_join(
+      merged_dataset %>%
+        filter(vacc_type == 0) %>%
+        select(simulation_index, comparator_value = combined_epi),
+      by = "simulation_index"
+    )
+  
   
   #for the whole period dividing the other costs by the number of doses
   
-  merged_dataset <- merged_dataset %>% mutate(cost_by_dose = (discounted_epi_costs + discounted_DALYs_cost)/vaccs)
+  merged_dataset <- merged_dataset %>% mutate(cost_by_dose = (combined_epi - comparator_value)/vaccs)
   
   
   return(merged_dataset)
@@ -768,5 +761,96 @@ Overall_economic_analysis_updated <- function(seasonal_data_set, pandemic_data_s
 }
 
 
+Overall_economic_analysis_seasonal <- function(seasonal_data_set, symp_samples,dcr_infr, global_ihrs,
+                                               country_of_interest,
+                                               national_ifrs, yll_df, year_of_interest, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
+                                               cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
+                                               cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
+                                               doses_info, wastage, dose_price){
+  
+  #calculating the DALYS for seasonal and pandemic
+  
+  seasonal_DALYs <- total_DALYS_for_seasonal(seasonal_data_set, symp_samples,dcr_infr, global_ihrs, outpatient_ratios,
+                                             country_of_interest,
+                                             national_ifrs, yll_df, DALY_weight_samples)
+  
+  healthcareananalysis <- healthcost_analysis(merged_subset, cost_predic_c, country_of_interest)
+  
+  combined_analysis <- adding_in_WTP(healthcareananalysis, WTP_choice, wtp_thresh, country_of_interest, WTP_GDP_ratio)
+  
+  combined_analysis <- adding_in_discounting(combined_analysis, 2025, cost_discount_rate_val, DALY_discount_rate_val)
+  
+  doses_calculated <- doses_calculator(country_specs, delivery_cost_samples, 
+                                       country_of_interest, doses_info, wastage, dose_price, 2025,
+                                       cost_discount_rate_val)
+  merged_dataset <- merge(combined_analysis, doses_calculated, by=c('simulation_index', 'vacc_type', 'year', 'age_grp'))
+  
+  #summarising over age group
+  merged_dataset <- merged_dataset %>%
+    group_by(simulation_index, vacc_type, year) %>%
+    summarise(
+      discounted_epi_costs = sum(discounted_epi_costs),
+      discounted_DALYs_cost = sum(discounted_DALYs_cost),
+      discounted_doses_cost = sum(discounted_doses_cost),
+      vaccs = sum(vaccs),
+      
+      .groups = 'drop'
+    )
+  
+  
+  merged_dataset <- merged_dataset %>% mutate(combined_epi = discounted_epi_costs +  discounted_DALYs_cost,
+                                              total_cost = discounted_epi_costs +  discounted_DALYs_cost + discounted_doses_cost)
+  
+  merged_dataset <- merged_dataset %>%
+    # Create a temporary dataset of just the comparator values
+    left_join(
+      merged_dataset %>%
+        filter(vacc_type == 0) %>%
+        select(simulation_index, comparator_value = combined_epi),
+      by = "simulation_index"
+    )
+  
+  
+  #for the whole period dividing the other costs by the number of doses
+  
+  merged_dataset <- merged_dataset %>% mutate(cost_by_dose = (combined_epi - comparator_value)/vaccs)
+  
+  
+  
+  return(merged_dataset)
+  
+}
 
 
+Pandemic_impact <- function(country_of_interest, age_testing_strategy, year_of_interest , years, pand_dt,
+                            symp_samples,dcr_infr, global_ihrs,
+                            national_ifrs, yll_df, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
+                            cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
+                            cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
+                            doses_info, wastage, dose_price, case_proportion){
+  
+  pandemic_dataset <- pandemic_datasets(country_of_interest, age_testing_strategy, year_of_interest, years)
+  seasonal_dataset_pan <- epidemic_datasets_combine(country, age_testing_strategy, pand_dt[pand_dt$year_pandemic == years, ], FALSE)
+  seasonal_dataset_only <- epidemic_datasets_combine(country, age_testing_strategy, pand_dt[pand_dt$year_pandemic == years, ], TRUE)
+  
+  pandemic_plus <- Overall_economic_analysis(seasonal_dataset_pan, pandemic_dataset, symp_samples,dcr_infr, global_ihrs,
+                                             country_of_interest,
+                                             national_ifrs, yll_df, year_of_interest, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
+                                             cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
+                                             cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
+                                             doses_info, wastage, dose_price, case_proportion)
+  
+  
+  seasonal_only <- Overall_economic_analysis_seasonal(seasonal_dataset_only, symp_samples,dcr_infr, global_ihrs,
+                                                      country_of_interest,
+                                                      national_ifrs, yll_df, year_of_interest, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
+                                                      cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
+                                                      cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
+                                                      doses_info, wastage, dose_price)
+  
+  merged_dataset <- merge(pandemic_plus, seasonal_only, by=c('simulation_index', 'vacc_type', 'year', 'age_grp'))
+  
+  
+  return(merged_dataset)
+  
+}

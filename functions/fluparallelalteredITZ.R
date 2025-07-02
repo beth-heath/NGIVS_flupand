@@ -70,7 +70,7 @@ converting_epidemic_code <- function(itz_input,years_of_analysis,simulation_set,
 
 #### FUNCTION TO RUN ####
 ## only input is vaccine type, to parallelise over vt ##
-flu_parallel_ITZ <- function(vaccine_type){
+flu_parallel_ITZ <- function(vaccine_input){
   
   set.seed(123)
   
@@ -79,8 +79,34 @@ flu_parallel_ITZ <- function(vaccine_type){
   dates_many_flu <- seq.Date(last_monday(min(epid_dt$period_start_date)), 
                              last_monday(max(epid_dt$end_date)), 
                              by=7)
+  if (vaccine_input < 16){
+    
+    mechanism_type <- vaccine_input %% 3 +1 
+    vaccine_strategy_pandemics <- c('sterilising', 'disease mod', 'infection period')[mechanism_type]
+    
+    if (vaccine_strategy_pandemics == 'sterilising'){
+      vacc_type_list_pand <<- vacc_type_list_sterilising
+    } else if (vaccine_strategy_pandemics == 'disease mod'){
+      vacc_type_list_pand <<- vacc_type_list_dis_mod
+    } else if (vaccine_strategy_pandemics == 'infection period'){
+      vacc_type_list_pand <<- vacc_type_list_reduced_infec
+    }
+    
+    
+    vaccine_type <- vaccine_input %% 5 +1 
+    removing_zero <- names(vacc_type_list_pand)[2:6]
+    vacc_name <- removing_zero[vaccine_type]
+    
+  } else {
+    vacc_name <- names(vacc_type_list)[1]
+    vaccine_strategy_pandemics <- c('sterilising', 'disease mod', 'infection period')[1]
+  }
   
-  vacc_name <- names(vacc_type_list)[vaccine_type]
+  print(mechanism_type)
+  print(vaccine_strategy_pandemics)
+
+  
+  print(vacc_type_list_pand)
   
   vaccine_used_vec <- if(vaccine_variable == 'doses'){
     # if using doses, NGIVs are often introduced years after the start of the epidemic period
@@ -89,6 +115,9 @@ flu_parallel_ITZ <- function(vaccine_type){
     # if using coverage, assuming NGIVs available each year (adjust here if not!)
     rep(vacc_name, (year(epid_dt$end_date[1]) - year(epid_dt$period_start_date[1])))
   }
+  #only works for pandemics - only run for first 6 for epidemics 
+  
+  
   
   ## vaccination and ageing
   demography_dt <- fcn_weekly_demog(

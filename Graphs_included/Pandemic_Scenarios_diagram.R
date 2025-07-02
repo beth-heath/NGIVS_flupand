@@ -99,7 +99,7 @@ combined_plot
 
 data <- data.frame(
   category = c("Without Vaccine", "With Vaccine"),
-  count = c(1, 0.5),
+  count = c(1, 0.7),
   vaccination_status = c("Without Vaccine", "With Vaccine")
 )
 
@@ -108,8 +108,66 @@ ggplot(data, aes(x = category, y = count, fill = vaccination_status)) +
   geom_bar(stat = "identity") +
   scale_fill_manual(values = c("Without Vaccine" = "#FFC1C2", "With Vaccine" = "#C1C3FF")) +
   labs(title = "CFR by vaccination status", x = "Vaccination Status", y = "CFR (%)") +
-  theme_minimal()
+  theme_minimal()  +
+  theme(
+    plot.title = element_text(size = 24, face = "bold"),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 15),
+    strip.text = element_text(size = 14)
+  ) 
 
 
+df <- data.frame(
+  Scenario = c(rep("Pandemic Scenario 1", 21), rep("Pandemic Scenario 2", 21), rep("Pandemic Scenario 3", 21)),
+  step = rep(seq(0,100,5),3),
+  lower = c(rep(84,1), rep(80,3),rep(80,17),
+            rep(76,1), rep(70,3),rep(60,17),
+            rep(84,1), rep(80,3),rep(30,17)),
+  upper = c(rep(96,1), rep(95,3),rep(95,17),
+            rep(92,1), rep(90,3),rep(80,17),
+            rep(96,1), rep(95,3),rep(50,17))
+)
+
+
+plot1 <- ggplot(df, aes(x = step, ymin = lower, ymax = upper, fill = Scenario)) +
+  geom_ribbon(alpha = 0.3) +
+  geom_step(aes(y = lower), color = "black") +
+  geom_step(aes(y = upper), color = "black") +
+  scale_fill_manual(values = c("Pandemic Scenario 1" = "red", "Pandemic Scenario 2" = "blue", "Pandemic Scenario 3" = "grey")) +
+  facet_wrap(~ Scenario) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 18, face = "bold"),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    strip.text = element_text(size = 14),
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 14)
+  ) +
+  labs(title = "Susceptibility Parameter Intervals (%) by Age", y='Susceptibility', x='Age')
+
+
+df <- data.frame(
+  scenario = c(rep("Pandemic Scenario 1", 21), rep("Pandemic Scenario 2", 21), rep("Pandemic Scenario 3", 21)),
+  step = rep(seq(0,100,5),3),
+  cfr = c(rep(2.5,1), rep(0.7,3),rep(2.2,9),rep(4.5,8),
+          rep(1.1,1), rep(0.03,3),rep(0.07,9),rep(1.8,8),
+          rep(0.03,1), rep(0.01,3),rep(0.04,9),rep(1,8))
+)
+
+plot2 <- ggplot(df, aes(x = step)) +
+  geom_step(aes(y = cfr), color = "black") +
+  facet_wrap(~ scenario) +
+  theme_minimal() +
+  labs(title = "CFR (%) by Age", y = 'CFR', x = 'Age') +
+  theme(
+    plot.title = element_text(size = 18, face = "bold"),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    strip.text = element_text(size = 14)
+  )
+
+combined <- plot1/plot2
+combined
 
 
