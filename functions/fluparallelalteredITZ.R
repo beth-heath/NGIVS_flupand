@@ -98,6 +98,7 @@ flu_parallel_ITZ <- function(vaccine_input){
     vacc_name <- removing_zero[vaccine_type]
     
   } else {
+    vaccine_type <- 1
     vacc_name <- names(vacc_type_list)[1]
     vaccine_strategy_pandemics <- c('sterilising', 'disease mod', 'infection period')[1]
     if (vaccine_strategy_pandemics == 'sterilising'){
