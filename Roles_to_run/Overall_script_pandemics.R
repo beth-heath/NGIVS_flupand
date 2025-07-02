@@ -15,9 +15,7 @@ source(here::here('setup','aesthetics.R'))
 args <- commandArgs(trailingOnly = TRUE)
 continent <- as.numeric(args[1])
 pandemic_scenario <- as.numeric(args[2])
-print('pand scns')
-print(pandemic_scenario)
-print(args)
+
 
 ################################################
 ############## set key parameters ##############
