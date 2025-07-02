@@ -102,11 +102,6 @@ flu_parallel_ITZ <- function(vaccine_input){
     vaccine_strategy_pandemics <- c('sterilising', 'disease mod', 'infection period')[1]
   }
   
-  print(mechanism_type)
-  print(vaccine_strategy_pandemics)
-
-  
-  print(vacc_type_list_pand)
   
   vaccine_used_vec <- if(vaccine_variable == 'doses'){
     # if using doses, NGIVs are often introduced years after the start of the epidemic period
@@ -185,7 +180,7 @@ flu_parallel_ITZ <- function(vaccine_input){
     combined_trial <- combined_trial[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 
     combined_trial[, vacc_type := names(vacc_type_list)[vaccine_type]] # add vaccine name
     combined_trial[, simulation_index := sim_index] # add simulation number
-    
+    combined_trial[, mechanism := vaccine_strategy_pandemics] # add mechanism
     
     # printing if there is an NA error (shouldn't happen)
     if(is.na(sum(rowSums(combined_trial %>% select(starts_with('I')))))){
@@ -240,6 +235,7 @@ flu_parallel_ITZ <- function(vaccine_input){
     }
     
     
+      
     # if(!file.exists(here::here('output','data','epi',paste0(itz_input,'_text')))){
     #   dir.create(file.path(here::here('output','data','epi',paste0(itz_input,'_text'))))
     # }

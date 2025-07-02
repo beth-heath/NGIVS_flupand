@@ -12,12 +12,10 @@ source(here::here('setup','aesthetics.R'))
 
 #### Reading in the parameters ####
 
-#args <- commandArgs(trailingOnly = TRUE)
-#continent <- args[1]
-#pandemic_scenario <- args[2]
+args <- commandArgs(trailingOnly = TRUE)
+continent <- args[1]
+pandemic_scenario <- args[2]
 
-continent <- 1
-pandemic_scenario <- 1
 
 ################################################
 ############## set key parameters ##############
@@ -41,7 +39,7 @@ vacc_calendar_weeks <- 12 # number of weeks in vaccination program
 source(here::here('functions/fluparallelalteredITZ.R'))
 
 #loading in the pandemic addition function sets 
-source(here::here('functions/creating_pandemic_data.R'))
+#source(here::here('functions/creating_pandemic_data.R'))
 
 
 ################################################
@@ -121,7 +119,6 @@ for (age_groups in 1:5){
     epid_dt <- pandemic_combined %>% subset(simulation_index <561)
     #running the code for these
     infs_rds_list <- mclapply(1:16, flu_parallel_ITZ, mc.cores=16,mc.preschedule = FALSE)
-    infs_rds_list <- mclapply(1:16, flu_parallel_ITZ, mc.cores=1,mc.preschedule = FALSE)
     
     
     #reducing down into an arrow table
@@ -130,7 +127,7 @@ for (age_groups in 1:5){
     rm(infs_rds_list)
     gc()
     #writing the arrow table with further compression to reduce the size of the files
-    write_parquet(overall_dt1, sink = here::here('Reduced_run',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_1.parquet')), compression = "zstd")
+    write_parquet(overall_dt1, sink = here::here('Run_scripts',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_1.parquet')), compression = "zstd")
     #remove all files from this segment to save space once again clearing the garbage can
     rm(overall_dt1)
     gc()
