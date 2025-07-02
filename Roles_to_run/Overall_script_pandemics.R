@@ -119,8 +119,7 @@ for (age_groups in 1:5){
     epid_dt <- pandemic_combined %>% subset(simulation_index <561)
     #running the code for these
     infs_rds_list <- mclapply(1:16, flu_parallel_ITZ, mc.cores=16,mc.preschedule = FALSE)
-    
-    
+    print(infs_rds_list)
     #reducing down into an arrow table
     overall_dt1 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     #removing the infs_rds_list file to save space and clearing garbage can
