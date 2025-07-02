@@ -16,6 +16,7 @@ args <- commandArgs(trailingOnly = TRUE)
 continent <- args[1]
 pandemic_scenario <- args[2]
 
+print(args)
 
 ################################################
 ############## set key parameters ##############
