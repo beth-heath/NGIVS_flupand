@@ -123,6 +123,9 @@ for (age_groups in 1:5){
     #reducing down into an arrow table
     overall_dt1 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     #removing the infs_rds_list file to save space and clearing garbage can
+    print('r list version')
+    print(rbindlist(infs_rds_list))
+    
     rm(infs_rds_list)
     gc()
     #writing the arrow table with further compression to reduce the size of the files
