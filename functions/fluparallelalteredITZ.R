@@ -100,6 +100,13 @@ flu_parallel_ITZ <- function(vaccine_input){
   } else {
     vacc_name <- names(vacc_type_list)[1]
     vaccine_strategy_pandemics <- c('sterilising', 'disease mod', 'infection period')[1]
+    if (vaccine_strategy_pandemics == 'sterilising'){
+      vacc_type_list_pand <<- vacc_type_list_sterilising
+    } else if (vaccine_strategy_pandemics == 'disease mod'){
+      vacc_type_list_pand <<- vacc_type_list_dis_mod
+    } else if (vaccine_strategy_pandemics == 'infection period'){
+      vacc_type_list_pand <<- vacc_type_list_reduced_infec
+    }
   }
   
   
