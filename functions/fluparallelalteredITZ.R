@@ -96,7 +96,7 @@ flu_parallel_ITZ <- function(vaccine_input){
     vaccine_type <- vaccine_input %% 5 +1 
     removing_zero <- c("A.1", "A.2", "B.1", "B.2", "C")
     vacc_name <- removing_zero[vaccine_type]
-    
+    vaccine_type <- vaccine_type + 1
   } else {
     vaccine_type <- 1
     vacc_name <- names(vacc_type_list)[1]
@@ -175,7 +175,7 @@ flu_parallel_ITZ <- function(vaccine_input){
     
     
     pandemic_only <- pandemic_only[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 
-    pandemic_only[, vacc_type := names(vacc_type_list)[vaccine_type]] # add vaccine name
+    pandemic_only[, vacc_type := vacc_name] # add vaccine name
     pandemic_only[, simulation_index := sim_index] # add simulation number
     
     
