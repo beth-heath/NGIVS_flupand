@@ -13,8 +13,8 @@ source(here::here('setup','aesthetics.R'))
 #### Reading in the parameters ####
 
 args <- commandArgs(trailingOnly = TRUE)
-continent <- args[1]
-pandemic_scenario <- args[2]
+continent <- as.numeric(args[1])
+pandemic_scenario <- as.numeric(args[2])
 print('pand scns')
 print(pandemic_scenario)
 print(args)
