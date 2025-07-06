@@ -142,7 +142,7 @@ for (age_groups in 1:5){
     overall_dt2 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt2, sink = here::here('Reduced_run',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_2.parquet')), compression = "zstd")
+    write_parquet(overall_dt2, sink = here::here('Run_scripts',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_2.parquet')), compression = "zstd")
     rm(overall_dt2)
     gc()
     
@@ -153,7 +153,7 @@ for (age_groups in 1:5){
     overall_dt3 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt3, sink = here::here('Reduced_run',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_3.parquet')), compression = "zstd")
+    write_parquet(overall_dt3, sink = here::here('Run_scripts',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_3.parquet')), compression = "zstd")
     rm(overall_dt3)
     gc()
     
@@ -164,7 +164,7 @@ for (age_groups in 1:5){
     overall_dt4 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt4, sink = here::here('Reduced_run',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_4.parquet')), compression = "zstd")
+    write_parquet(overall_dt4, sink = here::here('Run_scripts',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_4.parquet')), compression = "zstd")
     rm(overall_dt4)
     gc()
     
@@ -175,7 +175,7 @@ for (age_groups in 1:5){
     overall_dt5 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt5, sink = here::here('Reduced_run',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_5.parquet')), compression = "zstd")
+    write_parquet(overall_dt5, sink = here::here('Run_scripts',paste0('ITZzone', continent), paste0(condensed_c_name, countries,age_groups,'pansn', pandemic_scenario,'_5.parquet')), compression = "zstd")
     rm(overall_dt5)
     gc()
   }
