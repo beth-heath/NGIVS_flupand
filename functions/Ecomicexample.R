@@ -135,7 +135,7 @@ outpatient_ratios <- data.table(read_csv(here::here('data','econ','outpatient_ra
 
 #seasonal influenza function
 
-calculating_hosps_for_seasonal <- function(dataset, dcr_infr, global_ihrs, outpatient_ratios,country_of_interest){
+calculating_hosps_for_seasonal <- function(dataset, global_ihrs, outpatient_ratios,country_of_interest){
   
   edited_dataset <- long_form_data(dataset)
   
@@ -143,7 +143,7 @@ calculating_hosps_for_seasonal <- function(dataset, dcr_infr, global_ihrs, outpa
   
   merged_dataset <- merge(edited_dataset, global_ihrs[, .( age_grp, ihr, simulation_index)], by = c("age_grp", "simulation_index"), all.x = TRUE)
   
-  merged_dataset <- merged_dataset %>% mutate(hospitalisations = infection_nonvac*ihr*dcr_infr)
+  merged_dataset <- merged_dataset %>% mutate(hospitalisations = infection_nonvac*ihr)
   
   #creating the number of outpatients from the number of hospitlisations
   
@@ -211,7 +211,7 @@ calculating_symptomatics <- function(dataset, symp_samples){
 
 calculating_symptomatics_pandemics <- function(dataset, symp_samples){
   
-  edited_dataset <- long_form_data(dataset)
+  edited_dataset <- long_form_data_pandemic(dataset)
   
   merged_dataset <- merge(edited_dataset, symp_samples [, .( simulation_index, symp_prob, fever_prob)], by = c("simulation_index"), all.x = TRUE)
   
@@ -276,12 +276,12 @@ DALY_weight_samples <- data.table(read_csv('data/econ/DALY_weight_samples.csv',
 
 flu_duration <- 4/365
 
-calculating_ylds_for_seasonal <- function(dataset, symp_samples,dcr_infr, global_ihrs, outpatient_ratios,country_of_interest, DALY_weight_samples){
+calculating_ylds_for_seasonal <- function(dataset, symp_samples, global_ihrs, outpatient_ratios,country_of_interest, DALY_weight_samples){
   
-  symptomatic_numbers <- calculating_symptomatics(dataset, symp_samples,dcr_infr)
+  symptomatic_numbers <- calculating_symptomatics(dataset, symp_samples)
   
   
-  hospital_numbers <- calculating_hosps_for_seasonal(dataset, dcr_infr, global_ihrs, outpatient_ratios,country_of_interest)
+  hospital_numbers <- calculating_hosps_for_seasonal(dataset, global_ihrs, outpatient_ratios,country_of_interest)
   
   merged_dataset <- merge(symptomatic_numbers, hospital_numbers[, .(age_grp, simulation_index, vacc_type ,year, hospitalisations, outpatients)], by = c("age_grp", "simulation_index", "vacc_type", 'year'), all.x = TRUE)
   
@@ -613,7 +613,7 @@ Overall_economic_analysis <- function(seasonal_data_set, pandemic_data_set, symp
     # Create a temporary dataset of just the comparator values
     left_join(
       merged_dataset %>%
-        filter(vacc_type == 0) %>%
+        filter(vacc_type == 0 & mechanism == 'sterilising') %>%
         select(simulation_index, comparator_value = combined_epi),
       by = "simulation_index"
     )
@@ -629,5 +629,38 @@ Overall_economic_analysis <- function(seasonal_data_set, pandemic_data_set, symp
   
 }
 
+
+
+Pandemic_impact<- function(ITZregion, country_of_interest, age_testing_strategy, year_of_interest, years, pand_dt,
+         symp_samples, global_ihrs,
+         national_ifrs, yll_df, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
+         cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
+         cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
+         doses_info, wastage, dose_price, case_proportion){
+  
+  pandemic_dataset <- pandemic_datasets(ITZregion, country_of_interest, age_testing_strategy, year_of_interest, years)
+  seasonal_dataset_pan <- epidemic_datasets_combine(ITZregion, country_of_interest, age_testing_strategy, pand_dt[pand_dt$year_pandemic == years, ], FALSE)
+  seasonal_dataset_only <- epidemic_datasets_combine(ITZregion, country_of_interest, age_testing_strategy, pand_dt[pand_dt$year_pandemic == years, ], TRUE)
+  
+  pandemic_plus <- Overall_economic_analysis(seasonal_dataset_pan, pandemic_dataset, symp_samples,dcr_infr, global_ihrs,
+                                             country_of_interest,
+                                             national_ifrs, yll_df, year_of_interest, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
+                                             cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
+                                             cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
+                                             doses_info, wastage, dose_price, case_proportion, age_policy,years)
+  
+  seasonal_only <- Overall_economic_analysis_seasonal(seasonal_dataset_only, symp_samples,dcr_infr, global_ihrs,
+                                                      country_of_interest,
+                                                      national_ifrs, yll_df, year_of_interest, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
+                                                      cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
+                                                      cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
+                                                      wastage, dose_price, age_policy, years, costs)
+  
+  merged_dataset <- merge(pandemic_plus, seasonal_only, by=c('simulation_index', 'vacc_type'))
+  
+  
+  return(merged_dataset)
+  
+}
 
 
