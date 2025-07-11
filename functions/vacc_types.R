@@ -128,7 +128,7 @@ vacc_type_list_reduced_infec <- list(
     VE = c(0.7, 0.46, 0.42, 0.28),
     rel_inf = 1,
     gamma1_variable = 0.8,
-    gamma2_variable = 1.8,
+    gamma2_variable = 1,
     stop_infec_prob = 1
   ),
   A.2 = list(
@@ -136,7 +136,7 @@ vacc_type_list_reduced_infec <- list(
     VE = c(0.7, 0.46, 0.42, 0.28),
     rel_inf = 1,
     gamma1_variable = 0.8,
-    gamma2_variable = 1.8,
+    gamma2_variable = 1,
     stop_infec_prob =1
   ),
   B.1 = list(

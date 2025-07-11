@@ -122,7 +122,7 @@ for (age_groups in 1:5){
   
     #saveRDS(overall_dt1, file = here::here('outputs(0-33)',paste0(c_name, 'Epidemic_overall',countries,age_groups,'.rds')))
     
-    write_parquet(overall_dt1, sink = here::here('Reduced_run','ITZzone7', paste0('SouthernAmerica',countries,age_groups,'Epidemic_1.parquet')), compression = "zstd")
+    write_parquet(overall_dt1, sink = here::here('Run_script','ITZzone7', paste0('SouthernAmerica',countries,age_groups,'Epidemic_1.parquet')), compression = "zstd")
     rm(overall_dt1)
     gc()
     
@@ -140,7 +140,7 @@ for (age_groups in 1:5){
     gc()
     
     
-    write_parquet(overall_dt2, sink = here::here('Reduced_run','ITZzone7', paste0('SouthernAmerica',countries,age_groups,'Epidemic_2.parquet')), compression = "zstd")
+    write_parquet(overall_dt2, sink = here::here('Run_script','ITZzone7', paste0('SouthernAmerica',countries,age_groups,'Epidemic_2.parquet')), compression = "zstd")
     rm(overall_dt2)
     gc()
     
@@ -154,7 +154,7 @@ for (age_groups in 1:5){
     rm(infs_rds_list)
     gc()
     
-    write_parquet(overall_dt3, sink = here::here('Reduced_run','ITZzone7', paste0('SouthernAmerica',countries,age_groups,'Epidemic_3.parquet')), compression = "zstd")
+    write_parquet(overall_dt3, sink = here::here('Run_script','ITZzone7', paste0('SouthernAmerica',countries,age_groups,'Epidemic_3.parquet')), compression = "zstd")
     rm(overall_dt3)
     gc()
     
@@ -168,7 +168,7 @@ for (age_groups in 1:5){
     rm(infs_rds_list)
     gc()
     
-    write_parquet(overall_dt4, sink = here::here('Reduced_run','ITZzone7', paste0('SouthernAmerica',countries,age_groups,'Epidemic_4.parquet')), compression = "zstd")
+    write_parquet(overall_dt4, sink = here::here('Run_script','ITZzone7', paste0('SouthernAmerica',countries,age_groups,'Epidemic_4.parquet')), compression = "zstd")
     rm(overall_dt4)
     gc()
     
@@ -182,7 +182,7 @@ for (age_groups in 1:5){
     rm(infs_rds_list)
     gc()
     
-    write_parquet(overall_dt5, sink = here::here('Reduced_run','ITZzone7', paste0('SouthernAmerica',countries,age_groups,'Epidemic_5.parquet')), compression = "zstd")
+    write_parquet(overall_dt5, sink = here::here('Run_script','ITZzone7', paste0('SouthernAmerica',countries,age_groups,'Epidemic_5.parquet')), compression = "zstd")
     rm(overall_dt5)
     gc()
     

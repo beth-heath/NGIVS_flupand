@@ -191,40 +191,41 @@ flu_odin <- odin::odin({
   newInf[] <- lambda[i] * S[i]
   newInfv[] <- lambda[i] * Sv[i]
   #Need to add a if and only if indicator for for if they are using
-  newInfvR[] <- vacc_stop_inf * lambda[i] * Rev[i]
+  newInfvR[] <- vacc_stop_inf * lambda[i] * SvR[i]
   
   
   # THE DERIVATIVES OF THE SEEIIR MODEL
   # Derivatives of the not vaccinated group
-  deriv(S[])  <- + omega*(Sv[i] + Rev[i]) - newInf[i] - v[i] * S[i] 
-  deriv(E1[]) <- + omega*E1v[i] + newInf[i] - gamma1 * E1[i] - v[i] * E1[i] 
-  deriv(E2[]) <- + omega*E2v[i] + gamma1 * (E1[i] - E2[i]) - v[i] * E2[i]
-  deriv(I1[]) <- + omega*I1v[i] + gamma1 * E2[i]  - gamma2 * I1[i] - v[i] * I1[i] 
-  deriv(I2[]) <- + omega*I2v[i] + gamma2 * (I1[i] - I2[i]) - v[i] * I2[i] 
-  deriv(R[])  <- + omega*Rnv[i] + gamma2 * I2[i] - v[i] * R[i] 
+  deriv(S[])  <- + omega*(Sv[i] + SvR[i]) - newInf[i] - v[i] * S[i] 
+  deriv(E1[]) <- + omega*(E1v[i] + E1vR[i]) + newInf[i] - gamma1 * E1[i] - v[i] * E1[i] 
+  deriv(E2[]) <- + omega*(E2v[i]+ E2vR[i]) + gamma1 * (E1[i] - E2[i]) - v[i] * E2[i]
+  deriv(I1[]) <- + omega*(I1v[i]+ I1vR[i]) + gamma1 * E2[i]  - gamma2 * I1[i] - v[i] * I1[i] 
+  deriv(I2[]) <- + omega*(I2v[i]+ I2vR[i]) + gamma2 * (I1[i] - I2[i]) - v[i] * I2[i] 
+  deriv(R[])  <- + omega*(Rnv[i]+ RnvR[i] ) + gamma2 * I2[i] - v[i] * R[i] 
   
-  # Derivatives vaccination group
+  # Derivatives of incorrectly vaccinated group
   deriv(Sv[])  <- - omega*Sv[i]  - newInfv[i] + v[i] * (1-alpha[i]) * S[i] 
   deriv(E1v[]) <- - omega*E1v[i] + newInfv[i] - gamma1 * E1v[i] + v[i] * E1[i]
   deriv(E2v[]) <- - omega*E2v[i] + gamma1 * (E1v[i] - E2v[i]) + v[i] * E2[i]
   deriv(I1v[]) <- - omega*I1v[i] + gamma1 * E2v[i]  - gamma2 * I1v[i] + v[i] * I1[i]
   deriv(I2v[]) <- - omega*I2v[i] + gamma2 * (I1v[i] - I2v[i]) + v[i] * I2[i]
-  deriv(Rv[])  <- - omega*Rv[i]  + gamma2 * I2v[i] + v[i] * (R[i] + alpha[i] * S[i])- newInfvR[i]
-  #derivative Rv = derivate of Rv plus either the Rev or RnVR. 
-  deriv(Rv[])  <- - omega*Rv[i]  + gamma2 * I2v[i] + v[i] * (R[i]) + vacc_stop_inf*(gammav2 * I2vR[i]) + (1-vacc_stop_inf)*(v[i] * (alpha[i] * S[i]) - newInfvR[i])
-  
   deriv(Rnv[])  <- - omega*Rnv[i]  + gamma2 * I2v[i] + v[i] * (R[i])
-  #add to this that those in Rev can have the same infection leaving but can set to 0 for the sterilising case
-  #will need to have the vaccinated ones having a pathway through but in the sterililising case this will not be used
-  deriv(Rev[])  <- - omega*Rev[i] + v[i] * (alpha[i] * S[i]) - newInfvR[i]
+  
+  #Derivative of the correctly vaccinated group
+  
+  deriv(SvR[])  <- - omega*SvR[i] + v[i] * (alpha[i] * S[i]) - newInfvR[i]
   deriv(E1vR[]) <- - omega*E1vR[i] + newInfvR[i] - gammav1 * E1vR[i]
   deriv(E2vR[]) <- - omega*E2vR[i] + gammav1 * (E1vR[i] - E2vR[i])
   deriv(I1vR[]) <- - omega*I1vR[i] + gammav1 * E2vR[i]  - gammav2 * I1vR[i]
   deriv(I2vR[]) <- - omega*I2vR[i] + gammav2 * (I1vR[i] - I2vR[i])
   deriv(RnvR[])  <- - omega*RnvR[i]  + gammav2 * I2vR[i]
   
-  #have not included another Rv as do not know what this means 
+  #derivative Rv = derivative of Rev (effectively vaccinated) + derivative of not effectively vaccinated
+  deriv(Rv[])  <- - omega*Rv[i]  + gamma2 * I2v[i] + v[i] * (R[i]) + vacc_stop_inf*(gammav2 * I2vR[i]) + (1-vacc_stop_inf)*(v[i] * (alpha[i] * S[i]))
   
+  #add to this that those in Rev can have the same infection leaving but can set to 0 for the sterilising case
+  #will need to have the vaccinated ones having a pathway through but in the sterililising case this will not be used
+
   
   
   deriv(VT[]) <- + v[i]*(S[i] + E1[i] + E2[i] + I1[i] + I2[i] + R[i])
@@ -253,7 +254,7 @@ flu_odin <- odin::odin({
   initial(I2v[1:no_groups]) <- 0
   initial(Rv[1:no_groups]) <- (pop[i]*V0[i]) * (RV0[i])
   initial(Rnv[1:no_groups]) <- 0
-  initial(Rev[1:no_groups]) <- (pop[i]*V0[i]) * (RV0[i])
+  initial(SvR[1:no_groups]) <- (pop[i]*V0[i]) * (RV0[i])
   initial(VT[1:no_groups]) <- 0 #(pop[i]*V0[i])
   
   initial(E1vR[1:no_groups]) <- 0
@@ -294,7 +295,7 @@ flu_odin <- odin::odin({
   dim(I2v) <- no_groups
   dim(Rv) <- no_groups
   dim(Rnv) <- no_groups
-  dim(Rev) <- no_groups
+  dim(SvR) <- no_groups
   dim(cumI) <- no_groups
   dim(cumIU) <- no_groups
   dim(cumIV) <- no_groups
