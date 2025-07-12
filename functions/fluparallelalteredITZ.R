@@ -270,6 +270,176 @@ flu_parallel_ITZ <- function(vaccine_input){
 }
 
 
+flu_parallel_ITZ_epi <- function(vaccine_type){
+  
+  set.seed(123)
+  
+  # total_start_time <- Sys.time()
+  
+  dates_many_flu <- seq.Date(last_monday(min(epid_dt$period_start_date)), 
+                             last_monday(max(epid_dt$end_date)), 
+                             by=7)
+ 
+  vacc_name <- names(vacc_type_list)[vaccine_type]
+  
+  
+  vaccine_used_vec <- if(vaccine_variable == 'doses'){
+    # if using doses, NGIVs are often introduced years after the start of the epidemic period
+    doses[vacc_scenario == vacc_name & model_age_group==1]$vacc_used
+  }else{
+    # if using coverage, assuming NGIVs available each year (adjust here if not!)
+    rep(vacc_name, (year(epid_dt$end_date[1]) - year(epid_dt$period_start_date[1])))
+  }
+  #only works for pandemics - only run for first 6 for epidemics 
+  
+  
+  
+  ## vaccination and ageing
+  demography_dt <- fcn_weekly_demog(
+    country = iso3c_input,
+    ageing,
+    ageing_date,
+    dates_in = dates_many_flu,
+    demographic_start_year = start_year_of_analysis,
+    vaccine_used = vaccine_used_vec,
+    vaccine_var = vaccine_variable,
+    doses_dt = if(vaccine_variable == 'doses'){doses}else{NULL},
+    vacc_cov_vec = if(vaccine_variable == 'coverage'){cov_vec}else{NULL},
+    init_vaccinated = c(0,0,0,0),
+    model_age_groups
+  )
+  
+  # demography_dt %>% mutate(prop = value/total_as) %>% filter(V==T) %>% ggplot() + geom_line(aes(week, prop, col=age_grp))
+  if(min(demography_dt$value) < 0){ # quick fix if any vaccination issues (there shouldn't be)
+    print(paste0('Negative values in demography_dt, iso3c = ', iso3c_input,', vaccine type = ', vaccine_type))
+  }
+  
+  mf_output <- data.table()
+  pan_output <- data.table()
+  combined_output <- data.table()
+  combined_output2 <- data.table()
+  combined_output3 <- data.table()
+  
+  
+  # loop over 1:100 simulations
+  #for(sim_index in unique(epid_dt$simulation_index)){
+  for(sim_index in unique(simulation_nos_input )){
+    start_time <- Sys.time()
+    
+    # run flu simulations
+    mf_output_si <- many_flu(country = iso3c_input,
+                             ageing, 
+                             ageing_date,
+                             epid_inputs = epid_dt[epid_dt$simulation_index == sim_index, ],  
+                             vaccine_used = vaccine_used_vec,
+                             vaccine_var = vaccine_variable,
+                             doses_dt = if(vaccine_variable == 'doses'){doses}else{NULL},
+                             vacc_cov_vec = if(vaccine_variable == 'coverage'){cov_vec}else{NULL},
+                             model_age_groups,
+                             demography_dt
+    )
+    
+    pandemic_only <- mf_output_si[[2]]
+    combined_trial <- mf_output_si[[3]]
+    
+    
+    
+    
+    
+    pandemic_only <- pandemic_only[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 
+    pandemic_only[, vacc_type := vacc_name] # add vaccine name
+    pandemic_only[, simulation_index := sim_index] # add simulation number
+    
+    
+    # printing if there is an NA error (shouldn't happen)
+    if(is.na(sum(rowSums(pandemic_only %>% select(starts_with('I')))))){
+      print(paste0('vt = ', vaccine_type, ', sim_index = ', sim_index, ' - is.na'))
+    }
+    
+    
+    combined_trial <- combined_trial[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 
+    combined_trial[, vacc_type := names(vacc_type_list)[vaccine_type]] # add vaccine name
+    combined_trial[, simulation_index := sim_index] # add simulation number
+    combined_trial[, mechanism := vaccine_strategy_pandemics] # add mechanism
+    
+    # printing if there is an NA error (shouldn't happen)
+    if(is.na(sum(rowSums(combined_trial %>% select(starts_with('I')))))){
+      print(paste0('vt = ', vaccine_type, ', sim_index = ', sim_index, ' - is.na'))
+    }
+    
+    
+    mf_output_si <- mf_output_si[[1]]
+    
+    
+    mf_output_si <- mf_output_si[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 
+    mf_output_si[, vacc_type := names(vacc_type_list)[vaccine_type]] # add vaccine name
+    mf_output_si[, simulation_index := sim_index] # add simulation number
+    
+    
+    # printing if there is an NA error (shouldn't happen)
+    if(is.na(sum(rowSums(mf_output_si %>% select(starts_with('I')))))){
+      print(paste0('vt = ', vaccine_type, ', sim_index = ', sim_index, ' - is.na'))
+    }
+    
+    # merge output 
+    if(nrow(mf_output)==0){
+      mf_output <- mf_output_si
+    }else{
+      mf_output <- rbind(mf_output, mf_output_si)
+    }
+    
+    if(nrow(pan_output)==0){
+      pan_output <- pandemic_only
+    }else{
+      pan_output <- rbind(pan_output, pandemic_only)
+    }
+    
+    #if(nrow(combined_output)==0 & sim_index <= 33){
+    #  combined_output <- combined_trial
+    #}else if (sim_index <= 33 & nrow(combined_output)>0 ){
+    #  combined_output <- rbind(combined_output, combined_trial)
+    #} else if (nrow(combined_output2)==0 & sim_index > 33 & sim_index <= 66){
+    #  combined_output2 <- combined_trial
+    #} else if (sim_index > 33 & sim_index <= 66 & nrow(combined_output)>0){
+    #  combined_output2 <- rbind(combined_output2, combined_trial)
+    #}else if (nrow(combined_output2)==0 & sim_index > 66){
+    #  combined_output3 <- combined_trial
+    #} else if (sim_index > 66  & nrow(combined_output)>0){
+    #  combined_output3 <- rbind(combined_output3, combined_trial)
+    #}
+    
+    if(nrow(combined_output)==0 ){
+      combined_output <- combined_trial
+    }else if (nrow(combined_output)>0 ){
+      combined_output <- rbind(combined_output, combined_trial)
+    }
+    
+    
+    
+    # if(!file.exists(here::here('output','data','epi',paste0(itz_input,'_text')))){
+    #   dir.create(file.path(here::here('output','data','epi',paste0(itz_input,'_text'))))
+    # }
+    
+    # print txt file to keep track of simulations
+    # if(sim_index == 1 | sim_index %% 10 == 0){
+    #   writeLines(paste0(iso3c_input, ', simulation ', sim_index, ', time taken = ', round(Sys.time() - start_time,2),
+    #                     ', number of epids = ', nrow(epid_dt[simulation_index==sim_index]),
+    #                     ', total time on country = ', round(Sys.time() - total_start_time,2)),
+    #              paste0('output/data/epi/',paste0(itz_input,'_text'),'/',paste0(vaccine_type, '_text.txt')))  
+    # }
+    
+  }
+  
+  #trial <- list(mf_output, pan_output, combined_output, combined_output2, combined_output3)
+  
+  #trial <- list(mf_output, pan_output, combined_output)
+  
+  trial <- combined_output
+  
+  return(trial)
+  
+  #mf_output
+}
 
 
 
