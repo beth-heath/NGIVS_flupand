@@ -16,6 +16,7 @@ source(here::here('setup','packages.R'))
 # these will be kept constant throughout the simulations
 
 model_age_groups <- c(0,5,18,65) #where the age cutoffs are
+age_group_names <- paste0(model_age_groups,"-", c(model_age_groups[2:length(model_age_groups)],99)) #names of the age-groups
 start_year_of_analysis <- 2025 #the age the analysis starts
 years_of_analysis <- 30 #studying for 30 years in keeping in Goodfellow et al paper
 simulations <-100 #the number of simulations
