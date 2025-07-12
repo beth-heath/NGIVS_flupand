@@ -98,7 +98,7 @@ for (age_groups in 1:5){
     #loading and converting the epidemic file
     epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,1:20, ageing_date)
     #running the code for these simulations
-    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ_epi, mc.cores=length(vacc_type_list))
     #reducing down into an arrow table
     overall_dt1 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     #removing the infs_rds_list file to save space and clearing garbage can
@@ -113,7 +113,7 @@ for (age_groups in 1:5){
     #selecting the second set of simulations
     simulation_nos_input <- 21:40
     epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,21:40, ageing_date)
-    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ_epi, mc.cores=length(vacc_type_list))
     overall_dt2 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
@@ -124,7 +124,7 @@ for (age_groups in 1:5){
     #selecting the third set of simulations
     simulation_nos_input <- 41:60
     epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,41:60, ageing_date)
-    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ_epi, mc.cores=length(vacc_type_list))
     overall_dt3 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
@@ -135,7 +135,7 @@ for (age_groups in 1:5){
     #selecting the fourth set of simulations
     simulation_nos_input <- 61:80
     epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,61:80, ageing_date)
-    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ_epi, mc.cores=length(vacc_type_list))
     overall_dt4 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
@@ -146,7 +146,7 @@ for (age_groups in 1:5){
     #selecting the final set of simulations
     simulation_nos_input <- 81:100
     epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,81:100, ageing_date)
-    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ, mc.cores=length(vacc_type_list))
+    infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ_epi, mc.cores=length(vacc_type_list))
     overall_dt5 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
