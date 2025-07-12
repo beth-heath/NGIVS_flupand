@@ -99,7 +99,7 @@ if (vaccine_strategy_pandemics == 'sterilising'){
       epid_dt <- converting_epidemic_code(itz_input,years_of_analysis,1:20, ageing_date)
       #running the code for these simulations
       infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ_epi, mc.cores=length(vacc_type_list))
-      infs_rds_list <- mclapply(1:length(vacc_type_list), flu_parallel_ITZ_epi, mc.cores=1)
+      
       #reducing down into an arrow table
       overall_dt1 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
       #removing the infs_rds_list file to save space and clearing garbage can
