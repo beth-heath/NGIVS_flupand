@@ -2,14 +2,14 @@
 ### Creating diagram for comparitive analysis
 
 creating_data_for_bar_chart <- function(ITZregion, country_of_interest, age_testing_strategy, year_of_interest , years, pand_dt,
-                              symp_samples,dcr_infr, global_ihrs,
+                              symp_samples, global_ihrs,
                               national_ifrs, yll_df, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
                               cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
                               cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
                               doses_info, wastage, dose_price, case_proportion){
   
-  creating_dataset <- Pandemic_impact(ITZregion, country_of_interest, age_testing_strategy, year_of_interest , years, pand_dt,
-                                      symp_samples,dcr_infr, global_ihrs,
+  creating_dataset <- Pandemic_impact(ITZregion, country_of_interest, age_testing_strategy, year_of_interest, years, pand_dt,
+                                      symp_samples, global_ihrs,
                                       national_ifrs, yll_df, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
                                       cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
                                       cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
@@ -23,14 +23,13 @@ creating_data_for_bar_chart <- function(ITZregion, country_of_interest, age_test
                               dose_cost_difference = cost_by_dose.x - cost_by_dose.y)
   
   creating_dataset <- creating_dataset %>%
-    group_by(vacc_type) %>%
+    group_by(vacc_type, mechanism, simulation_index) %>%
     summarise(
       infection_difference = mean(infection_difference), 
       hospitilisations_difference = mean(hospitilisations_difference),
       deaths_difference = mean(deaths_difference),
       DALY_difference = mean(DALY_difference),
       cost_difference =mean(cost_difference),
-      dose_cost_difference = mean(dose_cost_difference),
       .groups = 'drop'
     )
   
@@ -40,8 +39,7 @@ creating_data_for_bar_chart <- function(ITZregion, country_of_interest, age_test
   creating_dataset$age_testing_strategy <- age_testing_strategy
   creating_dataset$pandemic <- year_of_interest
   creating_dataset$time_of_pandemic <- years
-  
-  return(creating_dataset)
+
   
 }
 
