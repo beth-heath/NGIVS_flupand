@@ -1,1 +1,2 @@
 load("/Users/lshbh6/Documents/GitHub/Pandemicscurrent/1918_pandemic_samples.Rdata")
+load("/Users/lshbh6/Documents/GitHub/Pandemicscurrent/1918_combined_set_NH.Rdata")

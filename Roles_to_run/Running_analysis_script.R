@@ -1,12 +1,28 @@
-#### File to run the code for ITZ region 7 
+#### File to run the code for ITZ region  
+
+#loading in region
+args <- commandArgs(trailingOnly = TRUE)
+continent <- as.numeric(args[1])
+
+#overall parameters
+model_age_groups <- c(0,5,18,65) #where the age cutoffs are
+age_group_names <- paste0(model_age_groups,"-", c(model_age_groups[2:length(model_age_groups)],99)) #names of the age-groups
+start_year_of_analysis <- 2025 #the age the analysis starts
+years_of_analysis <- 30 #studying for 30 years in keeping in Goodfellow et al paper
+simulations <-100 #the number of simulations
+ageing <- T # are the populations being aged in the simulations?
+key_dates <- c('01-04', '01-10') # vaccination and ageing dates (hemisphere-dependent)
+vacc_calendar_weeks <- 12 # number of weeks in vaccination program
 
 #loading in files
 source(here::here('setup','packages.R'))
-source(here::here('functions','Economiceexample.R'))
+source(here::here('functions','Ecomicexample.R'))
 source(here::here('functions','Analysisfile.R'))
+source(here::here('functions/fluparallelalteredITZ.R'))
+
 
 #loading in parameter sets
-ITZregion <- 7
+
 load("1918_combined_set_NH.Rdata")
 pand_dt <- pandemic_combined
 case_proportion <- 0.669
@@ -17,52 +33,29 @@ c_name <- c("Africa", "Asia-Europe", "Eastern and Southern Asia",
             "Southern America")[ITZregion]
 
 country_codes <- unique(country_itzs_names[which(country_itzs_names$cluster_name == c_name), ]$codes) 
+model_age_groups <- c(0,5,18,65) #where the age cutoffs are
+
 
 for (country in country_codes){
   country_of_interest <- country
   print(country_of_interest)
+  
   for (years in 1:28){
+    infs_rds_list <- mclapply(1:15, Analysis_file, mc.cores=15)
+     if (years ==1 ){
+      overall_file <- rbindlist(infs_rds_list)
+    } else {
+      overall_file <- rbind(overall_file, rbindlist(infs_rds_list))
+    }
+    rm(infs_rds_list )
     
-    infs_rds_list <- mclapply(1:15, flu_parallel_ITZ_epi, mc.cores=length(vacc_type_list))
-    overall_dt2 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
-    rm(infs_rds_list)
-    gc()
-    write_parquet(overall_dt2, sink = here::here('Run_script','ITZzone7', paste0('SouthernAmerica',countries,age_groups,'Epidemic_2.parquet')), compression = "zstd")
-    rm(overall_dt2)
-    gc()
-    
-    
+    if (years ==28){
+      overall_file <- arrow_table(overall_file)
+      write_parquet(overall_file, sink = here::here('Run_script','Overall', paste0('Overall file',country_of_interest,'.parquet')), compression = "zstd")
+    }
+    rm(overall_file)
   }
-  
-  
 }
-
-
-
-
-
-country_of_interest <- 'SLV'
-age_testing_strategy <- 5
-year_of_interest <- 1918
-years <- 3
-
-
-pandemic_combined
-
-trial1<- Pandemic_impact(ITZregion, country_of_interest, age_testing_strategy, year_of_interest, years, pand_dt,
-                 symp_samples, global_ihrs,
-                 national_ifrs, yll_df, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
-                 cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
-                 cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
-                 doses_info, wastage, dose_price, case_proportion)
-
-trial2 <- creating_data_for_bar_chart(ITZregion, country_of_interest, age_testing_strategy, year_of_interest , years, pand_dt,
-                                       symp_samples, global_ihrs,
-                                       national_ifrs, yll_df, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
-                                       cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
-                                       cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
-                                       doses_info, wastage, dose_price, case_proportion)
-
 
 
 

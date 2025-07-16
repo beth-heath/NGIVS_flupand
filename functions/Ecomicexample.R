@@ -27,7 +27,7 @@ long_form_data <- function(dataset){
   dataset_edit <- dataset[, lapply(.SD,sum),
                           by=c('simulation_index','vacc_type', 'year'), .SDcols = 4:20]
   
-  dataset_edit$simulation_index <- dataset_edit$simulation_index %% 100 +1
+  dataset_edit$simulation_index <- (dataset_edit$simulation_index +99) %% 100 +1
   long_dt <- melt(dataset_edit, 
                   id.vars = c('simulation_index','vacc_type', 'year'),
                   measure.vars = c("IU1", "IU2", "IU3", "IU4", "IV1", "IV2", "IV3", "IV4", "IVR1", "IVR2", "IVR3", "IVR4"),
@@ -53,7 +53,7 @@ long_form_data_pandemic <- function(dataset){
                           .SDcols = names(dataset)[sapply(dataset, is.numeric)]
   ]
   
-  dataset_edit$simulation_index <- dataset_edit$simulation_index %% 100 +1
+  dataset_edit$simulation_index <- (dataset_edit$simulation_index +99) %% 100 +1
   long_dt <- melt(dataset_edit, 
                   id.vars = c('simulation_index','vacc_type', 'year', 'mechanism'),
                   measure.vars = c("IU1", "IU2", "IU3", "IU4", "IV1", "IV2", "IV3", "IV4", "IVR1", "IVR2", "IVR3", "IVR4"),

@@ -225,7 +225,7 @@ reducing_dataset <- function(final_dataset, pand_dt, seasonal_only){
                                             date_early = pandemic_date %m-% months(2))
   
   restricted_dataset <- final_dataset[final_dataset$time < final_dataset$date_late,]
-  if (seasonal_only == TRUE){
+  if (seasonal_only == FALSE){
     restricted_dataset <- restricted_dataset[restricted_dataset$time_epidemic < restricted_dataset$date_early, ] 
   }
   
@@ -257,7 +257,6 @@ reducing_dataset <- function(final_dataset, pand_dt, seasonal_only){
 
 ### Running overall analysis
 
-
 Analysis_file <- function(situation){
   age_testing_strategy <- situation %% 5 + 1
   interest_yr <- situation %% 3 + 1
@@ -270,32 +269,7 @@ Analysis_file <- function(situation){
                                     cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
                                     doses_info, wastage, dose_price, case_proportion)
   
-  creating_dataset <- testing_output
   
-  creating_dataset <- creating_dataset %>% mutate(infection_difference = total_infections.x - total_infections.y,
-                                                  hospitilisations_difference = hospitalisations.x - hospitalisations.y,
-                                                  deaths_difference = total_deaths.x - total_deaths.y,
-                                                  DALY_difference = total_DALYS.x - total_DALYS.y,
-                                                  cost_difference = total_cost.x - total_cost.y,
-                                                  dose_cost_difference = cost_by_dose.x - cost_by_dose.y)
-  
-  creating_dataset <- creating_dataset %>%
-    group_by(vacc_type, mechanism, simulation_index) %>%
-    summarise(
-      infection_difference = mean(infection_difference), 
-      hospitilisations_difference = mean(hospitilisations_difference),
-      deaths_difference = mean(deaths_difference),
-      DALY_difference = mean(DALY_difference),
-      cost_difference =mean(cost_difference),
-      .groups = 'drop'
-    )
-  
-  
-  creating_dataset$ITZ <- ITZregion
-  creating_dataset$country <- country_of_interest
-  creating_dataset$age_testing_strategy <- age_testing_strategy
-  creating_dataset$pandemic <- year_of_interest
-  creating_dataset$time_of_pandemic <- years
   
   testing_output$ITZ <- ITZregion
   testing_output$country <- country_of_interest
@@ -305,12 +279,68 @@ Analysis_file <- function(situation){
   
   
   testing_output <- as.data.table(testing_output)
-  creating_dataset <- as.data.table(creating_dataset)
+
   
-  return(return(list(
-    overall_file = testing_output,
-    bar_chart_analysis = creating_dataset
-  )))
+  return(testing_output)
   
 }
+
+
+
+
+#Analysis_file <- function(situation){
+#  age_testing_strategy <- situation %% 5 + 1
+#  interest_yr <- situation %% 3 + 1
+#  year_of_interest <- c(1918, 1957, 2009)[interest_yr]
+#  
+#  testing_output <- Pandemic_impact(ITZregion, country_of_interest, age_testing_strategy, year_of_interest, years, pand_dt,
+#                                    symp_samples, global_ihrs,
+#                                    national_ifrs, yll_df, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
+#                                    cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
+#                                    cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
+#                                    doses_info, wastage, dose_price, case_proportion)
+#  
+#  creating_dataset <- testing_output
+#  
+#  creating_dataset <- creating_dataset %>% mutate(infection_difference = total_infections.x - total_infections.y,
+#                                                  hospitilisations_difference = hospitalisations.x - hospitalisations.y,
+#                                                  deaths_difference = total_deaths.x - total_deaths.y,
+#                                                  DALY_difference = total_DALYS.x - total_DALYS.y,
+#                                                  cost_difference = total_cost.x - total_cost.y,
+#                                                  dose_cost_difference = cost_by_dose.x - cost_by_dose.y)
+#  
+#  creating_dataset <- creating_dataset %>%
+#    group_by(vacc_type, mechanism, simulation_index) %>%
+#    summarise(
+#      infection_difference = mean(infection_difference), 
+#      deaths_difference = mean(deaths_difference),
+#      hospitilisations_difference = mean(hospitilisations_difference),
+#      DALY_difference = mean(DALY_difference),
+#      cost_difference =mean(cost_difference),
+#      .groups = 'drop'
+#    )
+  
+  
+#  creating_dataset$ITZ <- ITZregion
+#  creating_dataset$country <- country_of_interest
+#  creating_dataset$age_testing_strategy <- age_testing_strategy
+#  creating_dataset$pandemic <- year_of_interest
+#  creating_dataset$time_of_pandemic <- years
+  
+#  testing_output$ITZ <- ITZregion
+#  testing_output$country <- country_of_interest
+#  testing_output$age_testing_strategy <- age_testing_strategy
+#  testing_output$pandemic <- year_of_interest
+#  testing_output$time_of_pandemic <- years
+  
+  
+#  testing_output <- as.data.table(testing_output)
+#  creating_dataset <- as.data.table(creating_dataset)
+  
+#  return(return(list(
+#    overall_file = testing_output,
+#    bar_chart_analysis = creating_dataset
+#  )))
+  
+#}
 
