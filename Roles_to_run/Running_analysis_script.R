@@ -39,17 +39,14 @@ model_age_groups <- c(0,5,18,65) #where the age cutoffs are
 for (country in country_codes){
   country_of_interest <- country
   print(country_of_interest)
-  
+  overall_file <- NULL
   for (years in 1:28){
     years <- years 
     infs_rds_list <- mclapply(1:15, Analysis_file, mc.cores=15)
-    print(infs_rds_list)
-     if (years ==1 ){
-      overall_file <- rbindlist(infs_rds_list)
-    } else {
-      overall_file <- rbind(overall_file, rbindlist(infs_rds_list))
-    }
-    rm(infs_rds_list )
+    
+    this_year_data <- rbindlist(infs_rds_list)
+    overall_file <- if (is.null(overall_file)) this_year_data else rbind(overall_file, this_year_data)
+    rm(infs_rds_list)
     
     if (years ==28){
       overall_file <- arrow_table(overall_file)
