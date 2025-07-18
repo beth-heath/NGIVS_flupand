@@ -56,8 +56,9 @@ for (country in country_codes){
     if (years ==28){
       overall_file <- arrow_table(overall_file)
       write_parquet(overall_file, sink = here::here('Run_script','Overall', paste0('Overall file',country_of_interest,'.parquet')), compression = "zstd")
-    }
-    rm(overall_file)
+      rm(overall_file)
+      }
+    
   }
 }
 
