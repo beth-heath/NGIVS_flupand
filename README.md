@@ -10,8 +10,15 @@ packages, Roles_to_run which included the scripts to run to produce the outputs 
 
 ### `Roles_to_run\ITZzone*.R`
 
-This folder contains 70 files where each continent has a separate set of files with one that runs such for seasonal epidemics and then nine for the pandemics for the three pandemics and the three mechainsms of action of the pandemic vaccine.
-These files require no input from the user and need only run. 
+The folder contains 7 files where each continent has a separate set of files for one of the epidemic.
+
+### `Roles_to_run\Overall_script_pandemics.R`
+
+[TBD]
+
+### `Running_analysis_script.R`
+
+[TBD]
 
 ### `vacc_types.R`
 
@@ -26,9 +33,13 @@ Calculates weekly age- and vaccination-status specific population over the relev
 
 ### `functions/transmission_model.R`
 
+[TBD]
+
 Contains the ODE model builder, epidemic simulation function, a function to calculate vaccination status-specific demography.
 
 ### `functions/flu_sim.R`
+
+[TBD]
 
 Contains: 
 
@@ -37,10 +48,36 @@ Contains:
 - `dfn_vaccine_calendar()`, which converts the vaccine program and epidemic dates into a vaccine calendar 
 - `flu_doses()`, which calculates how many vaccines were given (before wastage) in the same epidemics as `many_flu()`
 
-### `flu_parallel.R`
+### `fluparallelalteredITZ.R`
+
+[TBD]
 
 Sets vaccine programs, then runs `many_flu()` for some epidemic data, parallelised across each vaccine type.
 
-### `flu_plots.R`
+### `analysis_files.R` & `Analysisfiles.R`
 
-Plots influenza incidence and cumulative infections.
+[TBD]
+
+### `functions/contact_matr_fcns.R`
+
+Taken from Goodfellow et al. Produces the contact matricwes.
+
+### `functions/Convergence_tests.R`
+
+[TBD]
+
+### `functions/creating_pandemic_data.R`
+
+[TBD]
+
+### `functions/dose_calculator_function.R.R` & `functions/doses_function.R.R`
+
+[TBD]
+
+### `functions/Economiceexample.R`
+
+[TBD]
+
+
+
+

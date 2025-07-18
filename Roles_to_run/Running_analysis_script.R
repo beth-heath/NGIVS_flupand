@@ -2,7 +2,7 @@
 
 #loading in region
 args <- commandArgs(trailingOnly = TRUE)
-continent <- as.numeric(args[1])
+ITZregion <- as.numeric(args[1])
 
 #overall parameters
 model_age_groups <- c(0,5,18,65) #where the age cutoffs are
@@ -26,7 +26,7 @@ source(here::here('functions/fluparallelalteredITZ.R'))
 load("1918_combined_set_NH.Rdata")
 pand_dt <- pandemic_combined
 case_proportion <- 0.669
-hosp_ratio <- 5
+hosp_ratio <- 4
 
 c_name <- c("Africa", "Asia-Europe", "Eastern and Southern Asia",
             "Europe", "Northern America", "Oceania-Melanesia-Polynesia",
@@ -41,6 +41,7 @@ for (country in country_codes){
   print(country_of_interest)
   
   for (years in 1:28){
+    years <- years 
     infs_rds_list <- mclapply(1:15, Analysis_file, mc.cores=15)
      if (years ==1 ){
       overall_file <- rbindlist(infs_rds_list)
