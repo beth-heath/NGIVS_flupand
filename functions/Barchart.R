@@ -5,14 +5,17 @@ producing_data_for_barchart <- function(overall_file, mechanism_of_interest, com
   restricting_mechanism <- overall_file[age_testing_strategy == 4|age_testing_strategy == 5, ]
   
   
-  restricting_mechanism <- restricting_mechanism[restricting_mechanism$mechanism == mechanism_of_interest, ]
-  #restricting_mechanism <- restricting_mechanism[restricting_mechanism$age_testing_strategy == age_test, ]
-  
   if (comparator =='0'){
-    restricting_mechanism <- restricting_mechanism[restricting_mechanism$vacc_type == '0'|restricting_mechanism$vacc_type == 'C', ]
+    zero_test_compare <- restricting_mechanism[restricting_mechanism$vacc_type == '0', ]
+    restricting_mechanism <- restricting_mechanism[restricting_mechanism$vacc_type == 'C' & restricting_mechanism$mechanism == mechanism_of_interest, ]
+    restricting_mechanism <- rbind(restricting_mechanism, zero_test_compare)
+    
   } else{
     restricting_mechanism <- restricting_mechanism[restricting_mechanism$vacc_type == 'A.2'|restricting_mechanism$vacc_type == 'C', ]
+    restricting_mechanism <- restricting_mechanism[restricting_mechanism$mechanism == mechanism_of_interest, ]
   }
+  
+  
   
   restricting_mechanism <- restricting_mechanism %>% mutate(infections_difference = total_infections.x - total_infections.y,
                                   hospital_difference = hospitalisations.x - hospitalisations.y,
@@ -42,16 +45,29 @@ producing_data_for_barchart <- function(overall_file, mechanism_of_interest, com
   }
   
   restriction_set  <- restriction_set%>% select(simulation_index,  ITZ, country,  pandemic,age_testing_strategy,   time_of_pandemic, infections_difference, hospital_difference, deaths_difference, DALY_difference, cost_difference)
-
   
-  return(restriction_set_recoded)
+  restriction_set <-  restriction_set %>%
+    group_by(simulation_index, ITZ, pandemic, age_testing_strategy) %>%
+    summarise(
+      infections_difference = sum(infections_difference),
+      hospital_difference = sum(hospital_difference),
+      deaths_difference = sum(deaths_difference),
+      DALY_difference = sum(DALY_difference),
+      cost_difference = sum(cost_difference),
+      .groups = "drop"
+    )
+  
+  return(restriction_set)
   
 }
+
+combined_set <- bar_chart_sterilising_0
+
 
 producing_data_for_barchart_overall <- function(combined_set){
   
   
-  restriction_set_recoded <- restriction_set %>%
+  restriction_set_recoded <- combined_set %>%
     pivot_longer(
       cols = ends_with("_difference"),
       names_to = "Outcome",
@@ -112,12 +128,14 @@ producing_data_for_linechart <- function(overall_file, mechanism_of_interest, ag
   restricting_mechanism <- overall_file[overall_file$mechanism == mechanism_of_interest, ]
   restricting_mechanism <- restricting_mechanism[restricting_mechanism$age_testing_strategy == age_test, ]
   restricting_mechanism <- restricting_mechanism[restricting_mechanism$vacc_type == 'C', ]
-  
-  restricting_mechanism <- restricting_mechanism %>% select(simulation_index,  ITZ, country,  pandemic,age_testing_strategy,   time_of_pandemic, cost_by_dose.x)
+  comparitive <- overall_file[overall_file$mechanism == 'sterilising' & overall_file$vacc_type == '0' & overall_file$age_testing_strategy == age_test, ]
+  restricting_mechanism <- rbind(restricting_mechanism, comparitive)
+  restricting_mechanism <- restricting_mechanism %>% select(simulation_index,  vacc_type, ITZ, country,  pandemic,age_testing_strategy,   time_of_pandemic, combined_epi.x, vaccs.x)
   
   restricting_mechanism <-  restricting_mechanism %>%
-    group_by(ITZ, pandemic,  time_of_pandemic) %>%
-    summarise(threshold_price=sum(cost_by_dose.x),
+    group_by(ITZ, pandemic,  time_of_pandemic, vacc_type) %>%
+    summarise(total_epi_costs=sum(combined_epi.x),
+              vaccs = sum(vaccs.x),
               .groups='drop')
   
   restricting_mechanism <- restricting_mechanism %>%
@@ -126,12 +144,19 @@ producing_data_for_linechart <- function(overall_file, mechanism_of_interest, ag
       pandemic = factor(pandemic)
     )
   
+  restricting_mechanism <- restricting_mechanism %>%  group_by(ITZ, pandemic,  time_of_pandemic, vacc_type) %>%
+    summarise(total_epi_costs=sum(total_epi_costs),
+              vaccs = sum(vaccs),
+              .groups='drop')
+  
+  restricting_mechanism <- as.data.table(restricting_mechanism)
+  restricting_mechanism <- dcast(restricting_mechanism,  ITZ   + pandemic + time_of_pandemic  ~ vacc_type , value.var = c("total_epi_costs", "vaccs" ))
   
   return(restricting_mechanism )
   
 }
 
-test3 <-producing_data_for_barchart(overall_file, 'sterilising', '0', 5) 
+test3 <-producing_data_for_linechart(overall_file, 'sterilising', 5) 
 
 ggplot(test3, aes(x = time_of_pandemic, y = threshold_price, color = ITZ, group = ITZ)) +
   geom_line(size = 1) +
@@ -183,7 +208,7 @@ ggplot(test1, aes(x = ITZ, y = mean_value / 1e6)) +
 
 starting <- 0
 begin <- 0
-ITZ_zone_done <- c(5,6)
+ITZ_zone_done <- c(2,3,5,6,7)
 
 for (i in 1:length(ITZ_zone_done)) {
   ITZregion <- ITZ_zone_done[i]
@@ -192,9 +217,10 @@ for (i in 1:length(ITZ_zone_done)) {
               "Southern America")[ITZregion]
   
   country_codes <- unique(country_itzs_names[which(country_itzs_names$cluster_name == c_name), ]$codes) 
-  
+  country_codes_not_considered <-c('GUF', 'HKG', 'MAC', 'NCL', 'PRI', 'PSE', 'TWN')
+  country_codes <- country_codes[!country_codes %in% country_codes_not_considered]
   for (country_of_interest in country_codes){
-    overall_file <- read_parquet(file.path('Run_script', 'Overall', paste0('Overall file', country_of_interest, '.parquet')))
+    overall_file <- read_parquet(file.path('Run_script', 'Overall', paste0('Overallfile', country_of_interest, '.parquet')))
 
                                  
                                  if (starting ==0){
@@ -209,8 +235,9 @@ for (i in 1:length(ITZ_zone_done)) {
                                    line_chart_disease_mod <- producing_data_for_linechart(overall_file, 'disease mod', 5)
                                    line_chart_infectious_period <- producing_data_for_linechart(overall_file, 'infection period', 5)
                                  }else{
-                                   bar_chart_sterilising_0 <- rbind(bar_chart_sterilising_0, producing_data_for_barchart(overall_file, 'sterilising', '0')) %>%
-                                     group_by(simulation_index,  ITZ, pandemic,  time_of_pandemic, age_testing_strategy) %>%
+                                   bar_chart_sterilising_0 <- rbind(bar_chart_sterilising_0, producing_data_for_barchart(overall_file, 'sterilising', '0'))
+                          
+                                   bar_chart_sterilising_0 <- bar_chart_sterilising_0 %>%  group_by(simulation_index,  ITZ, pandemic,   age_testing_strategy) %>%
                                      summarise(infections_difference=sum(infections_difference),
                                                hospital_difference = sum(hospital_difference),
                                                deaths_difference = sum(deaths_difference),
@@ -218,8 +245,9 @@ for (i in 1:length(ITZ_zone_done)) {
                                                cost_difference = sum(cost_difference),
                                                .groups='drop')
                                    
-                                   bar_chart_sterilising_current <- rbind(bar_chart_sterilising_current,  producing_data_for_barchart(overall_file, 'sterilising', 'A.2')) %>%
-                                     group_by(simulation_index,  ITZ, pandemic,  time_of_pandemic, age_testing_strategy) %>%
+                                   bar_chart_sterilising_current <- rbind(bar_chart_sterilising_current,  producing_data_for_barchart(overall_file, 'sterilising', 'A.2'))
+                                   
+                                   bar_chart_sterilising_current <- bar_chart_sterilising_current %>%  group_by(simulation_index,  ITZ, pandemic,  age_testing_strategy) %>%
                                      summarise(infections_difference=sum(infections_difference),
                                                hospital_difference = sum(hospital_difference),
                                                deaths_difference = sum(deaths_difference),
@@ -227,8 +255,8 @@ for (i in 1:length(ITZ_zone_done)) {
                                                cost_difference = sum(cost_difference),
                                                .groups='drop')
                                    
-                                   bar_chart_disease_mod_0 <- rbind(bar_chart_disease_mod_0, producing_data_for_barchart(overall_file, 'disease mod', '0')) %>%
-                                     group_by(simulation_index,  ITZ, pandemic,  time_of_pandemic, age_testing_strategy) %>%
+                                   bar_chart_disease_mod_0 <- rbind(bar_chart_disease_mod_0, producing_data_for_barchart(overall_file, 'disease mod', '0'))
+                                   bar_chart_disease_mod_0 <- bar_chart_disease_mod_0 %>%  group_by(simulation_index,  ITZ, pandemic,  age_testing_strategy) %>%
                                      summarise(infections_difference=sum(infections_difference),
                                                hospital_difference = sum(hospital_difference),
                                                deaths_difference = sum(deaths_difference),
@@ -236,8 +264,8 @@ for (i in 1:length(ITZ_zone_done)) {
                                                cost_difference = sum(cost_difference),
                                                .groups='drop')
                                    
-                                   bar_chart_disease_mod_current <- rbind(bar_chart_disease_mod_current,  producing_data_for_barchart(overall_file, 'disease mod', 'A.2')) %>%
-                                     group_by(simulation_index,  ITZ, pandemic,  time_of_pandemic, age_testing_strategy) %>%
+                                   bar_chart_disease_mod_current <- rbind(bar_chart_disease_mod_current,  producing_data_for_barchart(overall_file, 'disease mod', 'A.2')) 
+                                   bar_chart_disease_mod_current <- bar_chart_disease_mod_current %>%  group_by(simulation_index,  ITZ, pandemic,  age_testing_strategy) %>%
                                      summarise(infections_difference=sum(infections_difference),
                                                hospital_difference = sum(hospital_difference),
                                                deaths_difference = sum(deaths_difference),
@@ -245,8 +273,8 @@ for (i in 1:length(ITZ_zone_done)) {
                                                cost_difference = sum(cost_difference),
                                                .groups='drop')
                                    
-                                   bar_chart_infectious_period_0 <- rbind(bar_chart_infectious_period_0, producing_data_for_barchart(overall_file, 'infection period', '0')) %>%
-                                     group_by(simulation_index,  ITZ, pandemic,  time_of_pandemic, age_testing_strategy) %>%
+                                   bar_chart_infectious_period_0 <- rbind(bar_chart_infectious_period_0, producing_data_for_barchart(overall_file, 'infection period', '0')) 
+                                   bar_chart_infectious_period_0 <- bar_chart_infectious_period_0 %>%   group_by(simulation_index,  ITZ, pandemic, age_testing_strategy) %>%
                                      summarise(infections_difference=sum(infections_difference),
                                                hospital_difference = sum(hospital_difference),
                                                deaths_difference = sum(deaths_difference),
@@ -254,8 +282,8 @@ for (i in 1:length(ITZ_zone_done)) {
                                                cost_difference = sum(cost_difference),
                                                .groups='drop')
                                    
-                                   bar_chart_infectious_period_current <- rbind(bar_chart_infectious_period_current,  producing_data_for_barchart(overall_file, 'infection period', 'A.2')) %>%
-                                     group_by(simulation_index,  ITZ, pandemic,  time_of_pandemic, age_testing_strategy) %>%
+                                   bar_chart_infectious_period_current <- rbind(bar_chart_infectious_period_current,  producing_data_for_barchart(overall_file, 'infection period', 'A.2'))
+                                   bar_chart_infectious_period_current <- bar_chart_infectious_period_current %>%   group_by(simulation_index,  ITZ, pandemic,  age_testing_strategy) %>%
                                      summarise(infections_difference=sum(infections_difference),
                                                hospital_difference = sum(hospital_difference),
                                                deaths_difference = sum(deaths_difference),
@@ -264,63 +292,55 @@ for (i in 1:length(ITZ_zone_done)) {
                                                .groups='drop')
                                    
                                    
-                                   line_chart_sterilising <- rbind(line_chart_sterilising, producing_data_for_linechart(overall_file, 'sterilising', 5) ) %>% 
-                                     group_by(ITZ, pandemic,  time_of_pandemic) %>%
-                                     summarise(threshold_price=sum(cost_by_dose.x),
+                                   line_chart_sterilising <- rbind(line_chart_sterilising, producing_data_for_linechart(overall_file, 'sterilising', 5) ) 
+                                     line_chart_sterilising <- line_chart_sterilising %>%  group_by(ITZ, pandemic,  time_of_pandemic) %>%
+                                     summarise(total_epi_costs_0=sum(total_epi_costs_0),
+                                               total_epi_costs_C=sum(total_epi_costs_C),
+                                               vaccs_0 = sum(vaccs_0),
+                                               vaccs_C = sum(vaccs_C),
                                                .groups='drop')
                                    
-                                   line_chart_disease_mod <- rbind(line_chart_disease_mod, producing_data_for_linechart(overall_file, 'disease mod', 5) ) %>% 
-                                     group_by(ITZ, pandemic,  time_of_pandemic) %>%
-                                     summarise(threshold_price=sum(cost_by_dose.x),
+                                   line_chart_disease_mod <- line_chart_disease_mod %>% rbind(line_chart_disease_mod, producing_data_for_linechart(overall_file, 'disease mod', 5) ) 
+                                   line_chart_disease_mod <- line_chart_disease_mod %>%  group_by(ITZ, pandemic,  time_of_pandemic) %>%
+                                     summarise(total_epi_costs_0=sum(total_epi_costs_0),
+                                               total_epi_costs_C=sum(total_epi_costs_C),
+                                               vaccs_0 = sum(vaccs_0),
+                                               vaccs_C = sum(vaccs_C),
                                                .groups='drop')
-                                   line_chart_infectious_period <- rbind(line_chart_infectious_period, producing_data_for_linechart(overall_file, 'infection period', 5) ) %>% 
-                                     group_by(ITZ, pandemic,  time_of_pandemic) %>%
-                                     summarise(threshold_price=sum(cost_by_dose.x),
+                                   line_chart_infectious_period <- rbind(line_chart_infectious_period, producing_data_for_linechart(overall_file, 'infection period', 5) ) 
+                                   line_chart_infectious_period <- line_chart_infectious_period %>%   group_by(ITZ, pandemic,  time_of_pandemic) %>%
+                                     summarise(total_epi_costs_0=sum(total_epi_costs_0),
+                                               total_epi_costs_C=sum(total_epi_costs_C),
+                                               vaccs_0 = sum(vaccs_0),
+                                               vaccs_C = sum(vaccs_C),
                                                .groups='drop')
                                    
                                  }
                                  
-                                 if (begin == 0){
-                                   begin <- 1
-                                   bc_ster_0 <- bar_chart_sterilising_0
-                                   bc_ster_cu <- bar_chart_sterilising_current
-                                   bc_dm_0 <- bar_chart_disease_mod_0
-                                   bc_dm_cu <- bar_chart_disease_mod_current
-                                   bc_ip_0 <- bar_chart_infectious_period_0
-                                   bc_ip_cu <- bar_chart_infectious_period_current
-                                   lc_ster <- line_chart_sterilising
-                                   lc_dm <- line_chart_disease_mod
-                                   lc_ip <- line_chart_infectious_period
-                                 } else{
-                                   bc_ster_0 <- rbind(bc_ster_0, bar_chart_sterilising_0) 
-                                   bc_ster_cu <- rbind(bc_ster_cu, bar_chart_sterilising_current)
-                                   bc_dm_0 <- rbind( bc_dm_0,bar_chart_disease_mod_0)
-                                   bc_dm_cu <- rbind(bc_dm_cu, bar_chart_disease_mod_current)
-                                   bc_ip_0 <- rbind(bc_ip_0, bar_chart_infectious_period_0)
-                                   bc_ip_cu <- rbind(bc_ip_cu, bar_chart_infectious_period_current)
-                                   lc_ster <- rbind(lc_ster, line_chart_sterilising)
-                                   lc_dm <- rbind(lc_dm, line_chart_disease_mod)
-                                   lc_ip <- rbind(lc_ip, line_chart_infectious_period)
-                                 }
                                  
-                                 if (ITZregion == ITZ_zone_done[length(ITZ_zone_done)]){
-                                   bc_ster_0 <- producing_data_for_barchart_overall(bc_ster_0)
-                                   bc_ster_cu <- producing_data_for_barchart_overall(bc_ster_cu)
-                                   bc_dm_0 <- producing_data_for_barchart_overall(bc_dm_0)
-                                   bc_dm_cu <- producing_data_for_barchart_overall(bc_dm_cu)
-                                   bc_ip_0  <- producing_data_for_barchart_overall(bc_ip_0 )
-                                   bc_ip_cu <- producing_data_for_barchart_overall(bc_ip_cu)
+                                 if (ITZregion == ITZ_zone_done[length(ITZ_zone_done)] & country_of_interest == country_codes[length(country_codes)]){
                                    
-                                   plot_ster_0 <- ggplot(bc_ster_0, aes(x = ITZ, y = mean_value / 1e6)) +
-                                     geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+                                   line_chart_sterilising <- line_chart_sterilising %>% mutate(threshold_price = (total_epi_costs_0-total_epi_costs_C)/vaccs_C)
+                                   line_chart_disease_mod <- line_chart_disease_mod %>% mutate(threshold_price = (total_epi_costs_0-total_epi_costs_C)/vaccs_C)
+                                   line_chart_infectious_period <- line_chart_infectious_period %>% mutate(threshold_price = (total_epi_costs_0-total_epi_costs_C)/vaccs_C)
+                                   
+                                   bc_ster_0 <- producing_data_for_barchart_overall(bar_chart_sterilising_0)
+                                   bc_ster_cu <- producing_data_for_barchart_overall(bar_chart_sterilising_current)
+                                   bc_dm_0 <- producing_data_for_barchart_overall(bar_chart_disease_mod_0)
+                                   bc_dm_cu <- producing_data_for_barchart_overall(bar_chart_disease_mod_current)
+                                   bc_ip_0  <- producing_data_for_barchart_overall(bar_chart_infectious_period_0)
+                                   bc_ip_cu <- producing_data_for_barchart_overall(bar_chart_infectious_period_current)
+                                   
+                                   plot_ster_0 <- ggplot(bc_ster_0, aes(x = ITZ, y = mean_value / 1e6, fill = ITZ)) +
+                                     geom_bar(stat = "identity", color = "black") +
+                                     scale_fill_brewer(palette = "Set2") + 
                                      geom_errorbar(aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6), width = 0.2) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(age_testing_strategy), 
+                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y",
                                                 labeller = label_wrap_gen(width = 10)) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y") +
                                      labs(
                                        x = "ITZ",
                                        y = "Difference between seasonal and pandemic (millions)",
-                                       title = "Comparison of Outcomes by ITZ and Pandemic Type"
+                                       title = "Comparison of Outcomes by ITZ and Pandemic Type NGIVs vs no vaccination (sterilising)"
                                      ) +
                                      theme_bw() +
                                      theme(
@@ -328,16 +348,16 @@ for (i in 1:length(ITZ_zone_done)) {
                                        strip.text = element_text(size = 10)
                                      )
                                    
-                                   plot_ster_cu <- ggplot(bc_ster_cu, aes(x = ITZ, y = mean_value / 1e6)) +
-                                     geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+                                   plot_ster_cu <- ggplot(bc_ster_cu, aes(x = ITZ, y = mean_value / 1e6, fill = ITZ)) +
+                                     geom_bar(stat = "identity", color = "black") +
+                                     scale_fill_brewer(palette = "Set2") + 
                                      geom_errorbar(aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6), width = 0.2) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(age_testing_strategy), 
+                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y",
                                                 labeller = label_wrap_gen(width = 10)) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y") +
                                      labs(
                                        x = "ITZ",
                                        y = "Difference between seasonal and pandemic (millions)",
-                                       title = "Comparison of Outcomes by ITZ and Pandemic Type"
+                                       title = "Comparison of Outcomes by ITZ and Pandemic Type NGIVs vs current vaccination (disease-modifying)"
                                      ) +
                                      theme_bw() +
                                      theme(
@@ -345,16 +365,17 @@ for (i in 1:length(ITZ_zone_done)) {
                                        strip.text = element_text(size = 10)
                                      )
                                    
-                                   plot_dm_0 <- ggplot(bc_dm_0, aes(x = ITZ, y = mean_value / 1e6)) +
-                                     geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+                                   
+                                   plot_dm_0 <- ggplot(bc_dm_0, aes(x = ITZ, y = mean_value / 1e6, fill = ITZ)) +
+                                     geom_bar(stat = "identity", color = "black") +
+                                     scale_fill_brewer(palette = "Set2") + 
                                      geom_errorbar(aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6), width = 0.2) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(age_testing_strategy), 
+                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y",
                                                 labeller = label_wrap_gen(width = 10)) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y") +
                                      labs(
                                        x = "ITZ",
                                        y = "Difference between seasonal and pandemic (millions)",
-                                       title = "Comparison of Outcomes by ITZ and Pandemic Type"
+                                       title = "Comparison of Outcomes by ITZ and Pandemic Type NGIVs vs no vaccination (disease-modifying)"
                                      ) +
                                      theme_bw() +
                                      theme(
@@ -362,16 +383,16 @@ for (i in 1:length(ITZ_zone_done)) {
                                        strip.text = element_text(size = 10)
                                      )
                                    
-                                   plot_dm_cu <- ggplot(bc_dm_cu, aes(x = ITZ, y = mean_value / 1e6)) +
-                                     geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+                                   plot_dm_cu <- ggplot(bc_dm_cu, aes(x = ITZ, y = mean_value / 1e6, fill = ITZ)) +
+                                     geom_bar(stat = "identity", color = "black") +
+                                     scale_fill_brewer(palette = "Set2") + 
                                      geom_errorbar(aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6), width = 0.2) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(age_testing_strategy), 
+                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y",
                                                 labeller = label_wrap_gen(width = 10)) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y") +
                                      labs(
                                        x = "ITZ",
                                        y = "Difference between seasonal and pandemic (millions)",
-                                       title = "Comparison of Outcomes by ITZ and Pandemic Type"
+                                       title = "Comparison of Outcomes by ITZ and Pandemic Type NGIVs vs current vaccination (disease-modifying)"
                                      ) +
                                      theme_bw() +
                                      theme(
@@ -379,16 +400,16 @@ for (i in 1:length(ITZ_zone_done)) {
                                        strip.text = element_text(size = 10)
                                      )
                                    
-                                   plot_ip_0 <- ggplot(bc_ip_0, aes(x = ITZ, y = mean_value / 1e6)) +
-                                     geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+                                   plot_ip_0 <- ggplot(bc_ip_0, aes(x = ITZ, y = mean_value / 1e6, fill = ITZ)) +
+                                     geom_bar(stat = "identity", color = "black") +
+                                     scale_fill_brewer(palette = "Set2") + 
                                      geom_errorbar(aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6), width = 0.2) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(age_testing_strategy), 
+                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y",
                                                 labeller = label_wrap_gen(width = 10)) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y") +
                                      labs(
                                        x = "ITZ",
                                        y = "Difference between seasonal and pandemic (millions)",
-                                       title = "Comparison of Outcomes by ITZ and Pandemic Type"
+                                       title = "Comparison of Outcomes by ITZ and Pandemic Type NGIVs vs no vaccination (Infectious period-modifying)"
                                      ) +
                                      theme_bw() +
                                      theme(
@@ -396,16 +417,16 @@ for (i in 1:length(ITZ_zone_done)) {
                                        strip.text = element_text(size = 10)
                                      )
                                    
-                                   plot_ip_cu <- ggplot(bc_ip_cu, aes(x = ITZ, y = mean_value / 1e6)) +
-                                     geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+                                   plot_ip_cu <- ggplot(bc_ip_cu, aes(x = ITZ, y = mean_value / 1e6, fill = ITZ)) +
+                                     geom_bar(stat = "identity", color = "black") +
                                      geom_errorbar(aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6), width = 0.2) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(age_testing_strategy), 
+                                      scale_fill_brewer(palette = "Set2") + 
+                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y",
                                                 labeller = label_wrap_gen(width = 10)) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y") +
                                      labs(
                                        x = "ITZ",
                                        y = "Difference between seasonal and pandemic (millions)",
-                                       title = "Comparison of Outcomes by ITZ and Pandemic Type"
+                                       title = "Comparison of Outcomes by ITZ and Pandemic Type NGIVs vs current vaccination (Infectious period-modifying) "
                                      ) +
                                      theme_bw() +
                                      theme(
@@ -413,19 +434,27 @@ for (i in 1:length(ITZ_zone_done)) {
                                        strip.text = element_text(size = 10)
                                      )
                                    
-                                   line_graph_ster <- ggplot(lc_ster, aes(x = time_of_pandemic, y = threshold_price, color = ITZ, group = ITZ)) +
+                                   line_chart_sterilising$ITZ <- factor(
+                                     line_chart_sterilising$ITZ,
+                                     levels = c(1, 2, 3,4,5,6,7),
+                                     labels = c("Africa", "Asia-Europe", "Eastern and Southern Asia",
+                                                "Europe", "Northern America", "Oceania-Melanesia-Polynesia",
+                                                "Southern America")
+                                   )
+                                   
+                                   line_graph_ster <- ggplot(line_chart_sterilising, aes(x = time_of_pandemic, y = threshold_price, color = ITZ, group = ITZ)) +
                                      geom_line(size = 1) +
                                      geom_point(size = 2) +
                                      facet_wrap(~ pandemic, nrow = 1) +
                                      scale_color_brewer(palette = "Set2") +
                                      scale_x_continuous(
-                                       breaks = seq(min(lc_ster$time_of_pandemic), max(lc_ster$time_of_pandemic), by = 1)
+                                       breaks = seq(min(line_chart_sterilising$time_of_pandemic), max(line_chart_sterilising$time_of_pandemic), by = 1)
                                      ) +
                                      labs(
                                        x = "Year of Pandemic",
                                        y = "Threshold Price",
                                        color = "ITZ Zone",
-                                       title = "Threshold Price Over Time by ITZ and Pandemic Type"
+                                       title = "Threshold Price Over Time by ITZ and Pandemic Type (Sterilising)"
                                      ) +
                                      theme_bw() +
                                      theme(
@@ -433,19 +462,28 @@ for (i in 1:length(ITZ_zone_done)) {
                                        axis.text.x = element_text(angle = 45, hjust = 1)
                                      )
                                    
-                                   line_graph_dm <- ggplot(lc_dm, aes(x = time_of_pandemic, y = threshold_price, color = ITZ, group = ITZ)) +
+                                   line_chart_disease_mod$ITZ <- factor(
+                                     line_chart_disease_mod$ITZ,
+                                     levels = c(1, 2, 3,4,5,6,7),
+                                     labels = c("Africa", "Asia-Europe", "Eastern and Southern Asia",
+                                                "Europe", "Northern America", "Oceania-Melanesia-Polynesia",
+                                                "Southern America")
+                                   )
+                                   
+                                   
+                                   line_graph_dm <- ggplot(line_chart_disease_mod, aes(x = time_of_pandemic, y = threshold_price, color = ITZ, group = ITZ)) +
                                      geom_line(size = 1) +
                                      geom_point(size = 2) +
                                      facet_wrap(~ pandemic, nrow = 1) +
                                      scale_color_brewer(palette = "Set2") +
                                      scale_x_continuous(
-                                       breaks = seq(min(lc_dm$time_of_pandemic), max(lc_dm$time_of_pandemic), by = 1)
+                                       breaks = seq(min(line_chart_disease_mod$time_of_pandemic), max(line_chart_disease_mod$time_of_pandemic), by = 1)
                                      ) +
                                      labs(
                                        x = "Year of Pandemic",
                                        y = "Threshold Price",
                                        color = "ITZ Zone",
-                                       title = "Threshold Price Over Time by ITZ and Pandemic Type"
+                                       title = "Threshold Price Over Time by ITZ and Pandemic Type (Disease modifying)"
                                      ) +
                                      theme_bw() +
                                      theme(
@@ -453,19 +491,27 @@ for (i in 1:length(ITZ_zone_done)) {
                                        axis.text.x = element_text(angle = 45, hjust = 1)
                                      )
                                    
-                                   line_graph_ster <- ggplot(lc_ip, aes(x = time_of_pandemic, y = threshold_price, color = ITZ, group = ITZ)) +
+                                   line_chart_infectious_period$ITZ <- factor(
+                                     line_chart_infectious_period$ITZ,
+                                     levels = c(1, 2, 3,4,5,6,7),
+                                     labels = c("Africa", "Asia-Europe", "Eastern and Southern Asia",
+                                                "Europe", "Northern America", "Oceania-Melanesia-Polynesia",
+                                                "Southern America")
+                                   )
+                                   
+                                   line_graph_ip <- ggplot(line_chart_infectious_period, aes(x = time_of_pandemic, y = threshold_price, color = ITZ, group = ITZ)) +
                                      geom_line(size = 1) +
                                      geom_point(size = 2) +
                                      facet_wrap(~ pandemic, nrow = 1) +
                                      scale_color_brewer(palette = "Set2") +
                                      scale_x_continuous(
-                                       breaks = seq(min(lc_ip$time_of_pandemic), max(lc_ip$time_of_pandemic), by = 1)
+                                       breaks = seq(min(line_chart_infectious_period$time_of_pandemic), max(line_chart_infectious_period$time_of_pandemic), by = 1)
                                      ) +
                                      labs(
                                        x = "Year of Pandemic",
                                        y = "Threshold Price",
                                        color = "ITZ Zone",
-                                       title = "Threshold Price Over Time by ITZ and Pandemic Type"
+                                       title = "Threshold Price Over Time by ITZ and Pandemic Type (Infectious Period)"
                                      ) +
                                      theme_bw() +
                                      theme(

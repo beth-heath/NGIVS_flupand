@@ -45,9 +45,7 @@ for (country in country_codes){
     infs_rds_list <- mclapply(1:15, Analysis_file, mc.cores=15)
     print(years)
     if (years ==1 ){
-      print ('complete')
       overall_file <- rbindlist(infs_rds_list)
-      print(overall_file)
     } else {
       overall_file <- rbind(overall_file, rbindlist(infs_rds_list))
     }
