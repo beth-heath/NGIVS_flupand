@@ -9,6 +9,9 @@ DALY_discount <- as.numeric(args[3])
 LMIC_boost <- c(1,3)[LMIC_boost]
 discount_SA <- c(0,1)[DALY_discount]
 
+
+
+
 #overall parameters
 model_age_groups <- c(0,5,18,65) #where the age cutoffs are
 age_group_names <- paste0(model_age_groups,"-", c(model_age_groups[2:length(model_age_groups)],99)) #names of the age-groups
@@ -58,7 +61,7 @@ for (country in country_codes){
     
     if (years ==28){
       overall_file <- arrow_table(overall_file)
-      write_parquet(overall_file, sink = here::here('Run_script','Overall', paste0('Overallfile',country_of_interest,'.parquet')), compression = "zstd")
+      write_parquet(overall_file, sink = here::here('Run_script','Overall', paste0('Overallfile',country_of_interest,'LMICS',LMIC_boost,'discounting', DALY_discount, '.parquet')), compression = "zstd")
       rm(overall_file)
       }
     
