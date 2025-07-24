@@ -61,7 +61,6 @@ producing_data_for_barchart <- function(overall_file, mechanism_of_interest, com
   
 }
 
-combined_set <- bar_chart_sterilising_0
 
 
 producing_data_for_barchart_overall <- function(combined_set){
@@ -208,7 +207,7 @@ ggplot(test1, aes(x = ITZ, y = mean_value / 1e6)) +
 
 starting <- 0
 begin <- 0
-ITZ_zone_done <- c(2,3,5,6,7)
+ITZ_zone_done <- c(1, 2,3,4, 5,6,7)
 
 for (i in 1:length(ITZ_zone_done)) {
   ITZregion <- ITZ_zone_done[i]
@@ -217,7 +216,7 @@ for (i in 1:length(ITZ_zone_done)) {
               "Southern America")[ITZregion]
   
   country_codes <- unique(country_itzs_names[which(country_itzs_names$cluster_name == c_name), ]$codes) 
-  country_codes_not_considered <-c('GUF', 'HKG', 'MAC', 'NCL', 'PRI', 'PSE', 'TWN')
+  country_codes_not_considered <-c('GUF', 'HKG', 'MAC', 'NCL', 'PRI', 'PSE', 'TWN', 'XKX')
   country_codes <- country_codes[!country_codes %in% country_codes_not_considered]
   for (country_of_interest in country_codes){
     overall_file <- read_parquet(file.path('Run_script', 'Overall', paste0('Overallfile', country_of_interest, '.parquet')))

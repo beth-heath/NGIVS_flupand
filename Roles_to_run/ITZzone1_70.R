@@ -106,7 +106,7 @@ if (vaccine_strategy_pandemics == 'sterilising'){
       rm(infs_rds_list)
       gc()
       #writing the arrow table with further compression to reduce the size of the files
-      write_parquet(overall_dt1, sink = here::here('Run_script','ITZzone1(70)', paste0('Africa',countries,age_groups,'Epidemic_1.parquet')), compression = "zstd")
+      write_parquet(overall_dt1, sink = here::here('Run_script','ITZzone1_70', paste0('Africa',countries,age_groups,'Epidemic_1.parquet')), compression = "zstd")
       rm(overall_dt1)
       gc()
       
@@ -118,7 +118,7 @@ if (vaccine_strategy_pandemics == 'sterilising'){
       overall_dt2 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
       rm(infs_rds_list)
       gc()
-      write_parquet(overall_dt2, sink = here::here('Run_script','ITZzone1(70)', paste0('Africa',countries,age_groups,'Epidemic_2.parquet')), compression = "zstd")
+      write_parquet(overall_dt2, sink = here::here('Run_script','ITZzone1_70', paste0('Africa',countries,age_groups,'Epidemic_2.parquet')), compression = "zstd")
       rm(overall_dt2)
       gc()
       
@@ -129,7 +129,7 @@ if (vaccine_strategy_pandemics == 'sterilising'){
       overall_dt3 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
       rm(infs_rds_list)
       gc()
-      write_parquet(overall_dt3, sink = here::here('Run_script','ITZzone1(70)', paste0('Africa',countries,age_groups,'Epidemic_3.parquet')), compression = "zstd")
+      write_parquet(overall_dt3, sink = here::here('Run_script','ITZzone1_70', paste0('Africa',countries,age_groups,'Epidemic_3.parquet')), compression = "zstd")
       rm(overall_dt3)
       gc()
       
@@ -140,7 +140,7 @@ if (vaccine_strategy_pandemics == 'sterilising'){
       overall_dt4 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
       rm(infs_rds_list)
       gc()
-      write_parquet(overall_dt4, sink = here::here('Run_script','ITZzone1(70)', paste0('Africa',countries,age_groups,'Epidemic_4.parquet')), compression = "zstd")
+      write_parquet(overall_dt4, sink = here::here('Run_script','ITZzone1_70', paste0('Africa',countries,age_groups,'Epidemic_4.parquet')), compression = "zstd")
       rm(overall_dt4)
       gc()
       
@@ -151,7 +151,7 @@ if (vaccine_strategy_pandemics == 'sterilising'){
       overall_dt5 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
       rm(infs_rds_list)
       gc()
-      write_parquet(overall_dt5, sink = here::here('Run_script','ITZzone1(70)', paste0('Africa',countries,age_groups,'Epidemic_5.parquet')), compression = "zstd")
+      write_parquet(overall_dt5, sink = here::here('Run_script','ITZzone1_70', paste0('Africa',countries,age_groups,'Epidemic_5.parquet')), compression = "zstd")
       rm(overall_dt5)
       gc()
       

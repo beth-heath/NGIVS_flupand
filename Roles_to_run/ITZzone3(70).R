@@ -40,7 +40,7 @@ source(here::here('functions/fluparallelalteredITZ.R'))
 ################################################
 
 vaccine_variable <- c('doses','coverage')[2] # using MMGH doses or % coverage?
-cov_val <- 0.5 #what % coverage in each model age group?
+cov_val <- 0.7 #what % coverage in each model age group?
 
 vacc_type_list <- vacc_type_list_sterilising #setting the epidemic model used to have a sterilising mechanism of action
 
@@ -111,7 +111,7 @@ for (age_groups in 1:5){
     rm(infs_rds_list)
     gc()
     #writing the arrow table with further compression to reduce the size of the files
-    write_parquet(overall_dt1, sink = here::here('Run_script','ITZzone3', paste0('EasternandSouthernAsia',countries,age_groups,'Epidemic_1.parquet')), compression = "zstd")
+    write_parquet(overall_dt1, sink = here::here('Run_script','ITZzone3(70)', paste0('EasternandSouthernAsia',countries,age_groups,'Epidemic_1.parquet')), compression = "zstd")
     rm(overall_dt1)
     gc()
     
@@ -124,7 +124,7 @@ for (age_groups in 1:5){
     overall_dt2 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt2, sink = here::here('Run_script','ITZzone3', paste0('EasternandSouthernAsia',countries,age_groups,'Epidemic_2.parquet')), compression = "zstd")
+    write_parquet(overall_dt2, sink = here::here('Run_script','ITZzone3(70)', paste0('EasternandSouthernAsia',countries,age_groups,'Epidemic_2.parquet')), compression = "zstd")
     rm(overall_dt2)
     gc()
     
@@ -135,7 +135,7 @@ for (age_groups in 1:5){
     overall_dt3 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt3, sink = here::here('Run_script','ITZzone3', paste0('EasternandSouthernAsia',countries,age_groups,'Epidemic_3.parquet')), compression = "zstd")
+    write_parquet(overall_dt3, sink = here::here('Run_script','ITZzone3(70)', paste0('EasternandSouthernAsia',countries,age_groups,'Epidemic_3.parquet')), compression = "zstd")
     rm(overall_dt3)
     gc()
     
@@ -146,7 +146,7 @@ for (age_groups in 1:5){
     overall_dt4 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt4, sink = here::here('Run_script','ITZzone3', paste0('EasternandSouthernAsia',countries,age_groups,'Epidemic_4.parquet')), compression = "zstd")
+    write_parquet(overall_dt4, sink = here::here('Run_script','ITZzone3(70)', paste0('EasternandSouthernAsia',countries,age_groups,'Epidemic_4.parquet')), compression = "zstd")
     rm(overall_dt4)
     gc()
     
@@ -157,7 +157,7 @@ for (age_groups in 1:5){
     overall_dt5 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
     gc()
-    write_parquet(overall_dt5, sink = here::here('Run_script','ITZzone3', paste0('EasternandSouthernAsia',countries,age_groups,'Epidemic_5.parquet')), compression = "zstd")
+    write_parquet(overall_dt5, sink = here::here('Run_script','ITZzone3(70)', paste0('EasternandSouthernAsia',countries,age_groups,'Epidemic_5.parquet')), compression = "zstd")
     rm(overall_dt5)
     gc()
     

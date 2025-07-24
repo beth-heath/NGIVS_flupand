@@ -267,7 +267,7 @@ Analysis_file <- function(situation){
                                     national_ifrs, yll_df, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
                                     cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
                                     cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
-                                    doses_info, wastage, dose_price, case_proportion)
+                                    doses_info, wastage, dose_price, case_proportion, LMICS_country, LMIC_boost)
   
   
   

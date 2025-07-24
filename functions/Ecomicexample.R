@@ -3,21 +3,16 @@
 #### Reading in parameter values that will be used ####
 
 
-
-
 wastage <- 0.1
 WTP_choice <- c('lancet','gdp')[1]
 WTP_GDP_ratio <- 1
 
-discount_SA <- 0
 
 cost_discount_rate_val <- c(0.03, 0.03)[1 + discount_SA]
 DALY_discount_rate_val <- c(0.03, 0)[1 + discount_SA]
 
 
-#### Editing data to get into the correct form #####
-
-
+#### Editing data to get into the correct form ####
 #### function to transform the data from how it was inputted from the previous model ####
 
 long_form_data <- function(dataset){
@@ -99,8 +94,11 @@ calculating_deaths_for_seasonal <- function(dataset, country_of_interest, nation
   return(merged_dataset)
 }
 
+country_specs <- data.table(read.xlsx(here::here('data','econ','country_specs.xlsx')))
+LMICS_country <- country_specs[country_specs$income_g %in% c('LIC', 'LMIC'), ]$iso3c
+LMICS_country <- c(LMICS_country, 'PSE')
 
-calculating_deaths_for_pandemic <- function(dataset, year_of_interest, pandemic_ifrs, case_proportion){
+calculating_deaths_for_pandemic <- function(dataset, year_of_interest, pandemic_ifrs, case_proportion, LMICS_country, LMIC_boost, country_of_interest){
   
   ifrs_of_interest <- pandemic_ifrs[pandemic_scns==year_of_interest]
   
@@ -114,7 +112,9 @@ calculating_deaths_for_pandemic <- function(dataset, year_of_interest, pandemic_
       TRUE ~ 0.7
     ))
   
-  merged_dataset <- merged_dataset %>% mutate(deaths = infection_nonvac*ifr*case_proportion + dcr_infr*infection_vac*ifr*case_proportion )
+  boost <- if (country_of_interest %in% LMICS_country) LMIC_boost else 1
+  
+  merged_dataset <- merged_dataset %>% mutate(deaths = infection_nonvac*ifr*case_proportion*boost + dcr_infr*infection_vac*ifr*case_proportion*boost )
   
   return(merged_dataset)
 }
@@ -252,10 +252,10 @@ calculating_ylls_for_seasonal <- function(dataset, country_of_interest, national
 #### will need to add a different ylls for 1918 if chose to consider these seperately 
 
 calculating_ylls_for_pandemics <- function(dataset, country_of_interest, year_of_interest, pandemic_ifrs,
-                                          yll_df, case_proportion){
+                                          yll_df, case_proportion, LMICS_country, LMIC_boost){
   #finding the ifr for country of interest
   
-  merged_dataset <- calculating_deaths_for_pandemic(dataset, year_of_interest, pandemic_ifrs, case_proportion)
+  merged_dataset <- calculating_deaths_for_pandemic(dataset, year_of_interest, pandemic_ifrs, case_proportion, LMICS_country, LMIC_boost, country_of_interest)
   
   yll_of_interest <- yll_df[iso3c==country_of_interest]
   yll_of_interest$age_grp <- as.character(yll_of_interest$age_grp)
@@ -353,13 +353,14 @@ total_DALYS_for_seasonal <- function(dataset, symp_samples, global_ihrs, outpati
 
 total_DALYS_for_pandemic <- function(dataset, symp_samples, year_of_interest,hosp_ratio, 
                                      global_ihrs, outpatient_ratios,country_of_interest,
-                                     DALY_weight_samples, pandemic_ifrs, yll_df, case_proportion){
+                                     DALY_weight_samples, pandemic_ifrs, yll_df, case_proportion,
+                                     LMICS_country, LMIC_boost){
   ylds<- calculating_ylds_for_pandemic(dataset, symp_samples, year_of_interest,hosp_ratio, 
                                        global_ihrs, outpatient_ratios,country_of_interest,
                                        DALY_weight_samples, case_proportion)
   
   ylls<- calculating_ylls_for_pandemics(dataset, country_of_interest, year_of_interest, pandemic_ifrs, 
-                                        yll_df, case_proportion)
+                                        yll_df, case_proportion, LMICS_country, LMIC_boost)
   
   
   merged_dataset <- merge(ylds, ylls[, .(age_grp, simulation_index, vacc_type ,YLLs, year, deaths, mechanism)], by = c("age_grp", "simulation_index", "vacc_type", 'year', 'mechanism'), all.x = TRUE)
@@ -441,28 +442,31 @@ doses_calculator <- function(country_specs, delivery_cost_samples,
     doses_info <- subset(doses_info, vacc_population == "0-17 & 65-101")
   }
   
-  
-  
   country_specs <- country_specs[country_specs$iso3c==country_of_interest, ]
   
   country_specs[, country_type := case_when(
     country_of_interest == 'USA' ~'USA',
     # adding in these so the code runs
-    country_of_interest =='GUF'  ~'hics',
-    country_of_interest == 'HKG' ~'hics',
-    country_of_interest == 'MAC' ~'hics',
-    country_of_interest == 'NCL' ~'hics',
-    country_of_interest == 'PRI' ~'USA',
-    country_of_interest == 'PSE' ~'lmic_un_proc',
-    country_of_interest == 'TWN' ~'hics',
-    country_of_interest == 'XKX' ~'umics',
     income_g == 'HIC' & !iso3c=='USA' ~ 'hics',
     income_g == 'UMIC' ~ 'umics',
     income_g %in% c('LMIC','LIC') & procure_mech == 'UNICEF' ~ 'lmic_un_proc',
     income_g %in% c('LMIC','LIC') & procure_mech == 'Self-procuring' ~ 'lmic_self_proc',
   )]
   
-  selecting_pricing <- costs[costs$country_type==country_specs$country_type,  ]
+  if (country_of_interest %in% c('GUF', 'HKG', 'MAC', 'NCL','TWN')){
+    selecting_pricing <- costs[costs$country_type=='hics',  ]
+  }else if (country_of_interest %in% c('PRI')){
+    selecting_pricing <- costs[costs$country_type=='USA',  ] 
+  } else if (country_of_interest %in% c('PSE')){
+    selecting_pricing <- costs[costs$country_type=='lmic_un_proc',  ]  
+  } else if (country_of_interest %in% c('XKX')){
+    selecting_pricing <- costs[costs$country_type=='umics',  ]  
+    }
+  else{
+    selecting_pricing <- costs[costs$country_type==country_specs$country_type,  ]
+  }
+  
+  
   selecting_pricing <- selecting_pricing %>% select(vacc_type, midpoint)
   
   doses <- doses_info %>% mutate(doses_wastage = ceiling(vaccs*(1+wastage)))
@@ -526,7 +530,8 @@ Overall_economic_analysis <- function(seasonal_data_set, pandemic_data_set, symp
                                       national_ifrs, yll_df, year_of_interest, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
                                       cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
                                       cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
-                                      doses_info, wastage, dose_price, case_proportion, age_policy, pandemic_year){
+                                      doses_info, wastage, dose_price, case_proportion, age_policy, pandemic_year,
+                                      LMICS_country, LMIC_boost){
   
   #calculating the DALYS for seasonal and pandemic
   
@@ -536,7 +541,7 @@ Overall_economic_analysis <- function(seasonal_data_set, pandemic_data_set, symp
   
   pandemic_DALYs <- total_DALYS_for_pandemic(pandemic_data_set, symp_samples, year_of_interest,hosp_ratio, 
                                              global_ihrs, outpatient_ratios,country_of_interest,
-                                             DALY_weight_samples, pandemic_ifrs, yll_df, case_proportion)
+                                             DALY_weight_samples, pandemic_ifrs, yll_df, case_proportion, LMICS_country, LMIC_boost)
   
   pandemic_DALYs <- subset(pandemic_DALYs, select = c('simulation_index', 'vacc_type', 'year', 'age_grp', 'hospitalisations', 'outpatients', 'total_DALYS', 'infection_nonvac', 'infection_vac', 'deaths', 'mechanism'))
   
@@ -725,7 +730,7 @@ Pandemic_impact<- function(ITZregion, country_of_interest, age_testing_strategy,
          national_ifrs, yll_df, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
          cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
          cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
-         doses_info, wastage, dose_price, case_proportion){
+         doses_info, wastage, dose_price, case_proportion, LMICS_country, LMIC_boost){
   
   pandemic_dataset <- pandemic_datasets(ITZregion, country_of_interest, age_testing_strategy, year_of_interest, years)
   seasonal_dataset_pan <- epidemic_datasets_combine(ITZregion, country_of_interest, age_testing_strategy, pand_dt[pand_dt$year_pandemic == years, ], FALSE)
@@ -736,7 +741,7 @@ Pandemic_impact<- function(ITZregion, country_of_interest, age_testing_strategy,
                                              national_ifrs, yll_df, year_of_interest, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
                                              cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
                                              cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
-                                             doses_info, wastage, dose_price, case_proportion, age_testing_strategy,years)
+                                             doses_info, wastage, dose_price, case_proportion, age_testing_strategy,years, LMICS_country, LMIC_boost)
   
   seasonal_only <- Overall_economic_analysis_seasonal(seasonal_dataset_only, symp_samples, global_ihrs,
                                                       country_of_interest,
