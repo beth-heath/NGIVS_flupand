@@ -1,8 +1,16 @@
+#aesthics file
+
+source(here::here('setup','aesthetics.R'))
+
+
+#loading in WHO data file for WHO region
+WHO_region_file <- wtp_thresh <- data.table(read_csv(here::here('data/WHO_regions.csv'), show_col_type=F))
+
 
 #comporartor = 0 means no vaccination
 producing_data_for_barchart <- function(overall_file, mechanism_of_interest, comparator){
   
-  restricting_mechanism <- overall_file[age_testing_strategy == 4|age_testing_strategy == 5, ]
+  restricting_mechanism <- overall_file[age_testing_strategy == 2|age_testing_strategy == 4, ]
   
   
   if (comparator =='0'){
@@ -24,9 +32,9 @@ producing_data_for_barchart <- function(overall_file, mechanism_of_interest, com
                                   cost_difference = total_epi_costs.x - total_epi_costs.y
                                   )
   
-  restriction_set <- restricting_mechanism %>% select(simulation_index, vacc_type, ITZ, country, pandemic, time_of_pandemic, infections_difference, hospital_difference, deaths_difference, DALY_difference, cost_difference, age_testing_strategy)
+  restriction_set <- restricting_mechanism %>% select(simulation_index, vacc_type, WHO_region, country, pandemic, time_of_pandemic, infections_difference, hospital_difference, deaths_difference, DALY_difference, cost_difference, age_testing_strategy)
   
-  restriction_set <- dcast(restriction_set, simulation_index+ ITZ + country  + pandemic + time_of_pandemic + age_testing_strategy ~ vacc_type , value.var = c("infections_difference", "hospital_difference" , "deaths_difference", "DALY_difference", "cost_difference"))
+  restriction_set <- dcast(restriction_set, simulation_index+ WHO_region + country  + pandemic + time_of_pandemic + age_testing_strategy ~ vacc_type , value.var = c("infections_difference", "hospital_difference" , "deaths_difference", "DALY_difference", "cost_difference"))
   
   if (comparator =='0'){
     restriction_set <- restriction_set %>% mutate(infections_difference = infections_difference_0 - infections_difference_C,
@@ -44,10 +52,10 @@ producing_data_for_barchart <- function(overall_file, mechanism_of_interest, com
     )
   }
   
-  restriction_set  <- restriction_set%>% select(simulation_index,  ITZ, country,  pandemic,age_testing_strategy,   time_of_pandemic, infections_difference, hospital_difference, deaths_difference, DALY_difference, cost_difference)
+  restriction_set  <- restriction_set%>% select(simulation_index,  WHO_region, country,  pandemic,age_testing_strategy,   time_of_pandemic, infections_difference, hospital_difference, deaths_difference, DALY_difference, cost_difference)
   
   restriction_set <-  restriction_set %>%
-    group_by(simulation_index, ITZ, pandemic, age_testing_strategy) %>%
+    group_by(simulation_index, WHO_region, pandemic, age_testing_strategy, time_of_pandemic) %>%
     summarise(
       infections_difference = sum(infections_difference),
       hospital_difference = sum(hospital_difference),
@@ -80,14 +88,13 @@ producing_data_for_barchart_overall <- function(combined_set){
                        DALY_difference = "DALYs",
                        cost_difference = "Cost",
                        dose_cost_difference = 'Dose cost'),
-      ITZ = recode(ITZ,
-                   '1' = 'Africa',
-                   '2'='Asia-Europe',
-                   '3' = 'Eastern and Southern Asia',
-                   '4' = 'Europe',
-                   '5' = 'Northern America',
-                   '6'='Oceania-Melanesia-Polynesia',
-                   '7'='Southern America'),
+      WHO_region = recode(WHO_region,
+                   'SEAR' = 'South-East Asia Region',
+                   'WPR'='Western Pacific Region',
+                   'AMR' = 'Region of the Americas',
+                   'EMR' = 'Eastern Mediterranean Region',
+                   'EUR' = 'European Region',
+                   'AFR'='African Region'),
       
       age_testing_strategy = recode(age_testing_strategy,
                                     '1' = '0-4',
@@ -101,7 +108,7 @@ producing_data_for_barchart_overall <- function(combined_set){
   
   
   restriction_set_recoded <- restriction_set_recoded %>%
-    group_by(ITZ, pandemic,age_testing_strategy,  Outcome) %>%
+    group_by(WHO_region, pandemic,age_testing_strategy,  Outcome) %>%
     summarise(
       mean_value = mean(Value, na.rm = TRUE),
       sd_value = sd(Value, na.rm = TRUE),
@@ -129,77 +136,34 @@ producing_data_for_linechart <- function(overall_file, mechanism_of_interest, ag
   restricting_mechanism <- restricting_mechanism[restricting_mechanism$vacc_type == 'C', ]
   comparitive <- overall_file[overall_file$mechanism == 'sterilising' & overall_file$vacc_type == '0' & overall_file$age_testing_strategy == age_test, ]
   restricting_mechanism <- rbind(restricting_mechanism, comparitive)
-  restricting_mechanism <- restricting_mechanism %>% select(simulation_index,  vacc_type, ITZ, country,  pandemic,age_testing_strategy,   time_of_pandemic, combined_epi.x, vaccs.x)
+  restricting_mechanism <- restricting_mechanism %>% select(simulation_index,  vacc_type, WHO_region, country,  pandemic,age_testing_strategy,   time_of_pandemic, combined_epi.x, vaccs.x)
   
   restricting_mechanism <-  restricting_mechanism %>%
-    group_by(ITZ, pandemic,  time_of_pandemic, vacc_type) %>%
+    group_by(WHO_region, pandemic,  time_of_pandemic, vacc_type) %>%
     summarise(total_epi_costs=sum(combined_epi.x),
               vaccs = sum(vaccs.x),
               .groups='drop')
   
   restricting_mechanism <- restricting_mechanism %>%
     mutate(
-      ITZ = factor(ITZ),
+      WHO_region = factor(WHO_region),
       pandemic = factor(pandemic)
     )
   
-  restricting_mechanism <- restricting_mechanism %>%  group_by(ITZ, pandemic,  time_of_pandemic, vacc_type) %>%
+  restricting_mechanism <- restricting_mechanism %>%  group_by(WHO_region, pandemic,  time_of_pandemic, vacc_type) %>%
     summarise(total_epi_costs=sum(total_epi_costs),
               vaccs = sum(vaccs),
               .groups='drop')
   
   restricting_mechanism <- as.data.table(restricting_mechanism)
-  restricting_mechanism <- dcast(restricting_mechanism,  ITZ   + pandemic + time_of_pandemic  ~ vacc_type , value.var = c("total_epi_costs", "vaccs" ))
+  restricting_mechanism <- dcast(restricting_mechanism,  WHO_region   + pandemic + time_of_pandemic  ~ vacc_type , value.var = c("total_epi_costs", "vaccs" ))
   
   return(restricting_mechanism )
   
 }
 
-test3 <-producing_data_for_linechart(overall_file, 'sterilising', 5) 
-
-ggplot(test3, aes(x = time_of_pandemic, y = threshold_price, color = ITZ, group = ITZ)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
-  facet_wrap(~ pandemic, nrow = 1) +
-  scale_color_brewer(palette = "Set2") +
-  scale_x_continuous(
-    breaks = seq(min(test3$time_of_pandemic), max(test3$time_of_pandemic), by = 1)
-  ) +
-  labs(
-    x = "Year of Pandemic",
-    y = "Threshold Price",
-    color = "ITZ Zone",
-    title = "Threshold Price Over Time by ITZ and Pandemic Type"
-  ) +
-  theme_bw() +
-  theme(
-    strip.text = element_text(size = 12),
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
 
 
-
-
-
-
-test1 <- producing_data_for_barchart(overall_file, 'sterilising', '0')
-
-ggplot(test1, aes(x = ITZ, y = mean_value / 1e6)) +
-  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
-  geom_errorbar(aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6), width = 0.2) +
-  facet_grid(rows = vars(Outcome), cols = vars(age_testing_strategy), 
-             labeller = label_wrap_gen(width = 10)) +
-  facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y") +
-  labs(
-    x = "ITZ",
-    y = "Difference between seasonal and pandemic (millions)",
-    title = "Comparison of Outcomes by ITZ and Pandemic Type"
-  ) +
-  theme_bw() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    strip.text = element_text(size = 10)
-  )
 
 ###### Overall run ######
 
@@ -220,7 +184,10 @@ for (i in 1:length(ITZ_zone_done)) {
   country_codes <- country_codes[!country_codes %in% country_codes_not_considered]
   for (country_of_interest in country_codes){
     overall_file <- read_parquet(file.path('Run_script', 'Overall', paste0('Overallfile', country_of_interest, '.parquet')))
-
+    region_of_interest<- WHO_region_file[country_code == country_of_interest, ]$WHOREGION
+    overall_file$WHO_region <- rep(region_of_interest, nrow(overall_file))
+    
+    print(country_of_interest)
                                  
                                  if (starting ==0){
                                    starting <- 1
@@ -236,7 +203,7 @@ for (i in 1:length(ITZ_zone_done)) {
                                  }else{
                                    bar_chart_sterilising_0 <- rbind(bar_chart_sterilising_0, producing_data_for_barchart(overall_file, 'sterilising', '0'))
                           
-                                   bar_chart_sterilising_0 <- bar_chart_sterilising_0 %>%  group_by(simulation_index,  ITZ, pandemic,   age_testing_strategy) %>%
+                                   bar_chart_sterilising_0 <- bar_chart_sterilising_0 %>%  group_by(simulation_index,  WHO_region, pandemic,   age_testing_strategy, time_of_pandemic) %>%
                                      summarise(infections_difference=sum(infections_difference),
                                                hospital_difference = sum(hospital_difference),
                                                deaths_difference = sum(deaths_difference),
@@ -246,7 +213,7 @@ for (i in 1:length(ITZ_zone_done)) {
                                    
                                    bar_chart_sterilising_current <- rbind(bar_chart_sterilising_current,  producing_data_for_barchart(overall_file, 'sterilising', 'A.2'))
                                    
-                                   bar_chart_sterilising_current <- bar_chart_sterilising_current %>%  group_by(simulation_index,  ITZ, pandemic,  age_testing_strategy) %>%
+                                   bar_chart_sterilising_current <- bar_chart_sterilising_current %>%  group_by(simulation_index,  WHO_region, pandemic,  age_testing_strategy,  time_of_pandemic) %>%
                                      summarise(infections_difference=sum(infections_difference),
                                                hospital_difference = sum(hospital_difference),
                                                deaths_difference = sum(deaths_difference),
@@ -255,7 +222,7 @@ for (i in 1:length(ITZ_zone_done)) {
                                                .groups='drop')
                                    
                                    bar_chart_disease_mod_0 <- rbind(bar_chart_disease_mod_0, producing_data_for_barchart(overall_file, 'disease mod', '0'))
-                                   bar_chart_disease_mod_0 <- bar_chart_disease_mod_0 %>%  group_by(simulation_index,  ITZ, pandemic,  age_testing_strategy) %>%
+                                   bar_chart_disease_mod_0 <- bar_chart_disease_mod_0 %>%  group_by(simulation_index,  WHO_region, pandemic,  age_testing_strategy,  time_of_pandemic) %>%
                                      summarise(infections_difference=sum(infections_difference),
                                                hospital_difference = sum(hospital_difference),
                                                deaths_difference = sum(deaths_difference),
@@ -264,7 +231,7 @@ for (i in 1:length(ITZ_zone_done)) {
                                                .groups='drop')
                                    
                                    bar_chart_disease_mod_current <- rbind(bar_chart_disease_mod_current,  producing_data_for_barchart(overall_file, 'disease mod', 'A.2')) 
-                                   bar_chart_disease_mod_current <- bar_chart_disease_mod_current %>%  group_by(simulation_index,  ITZ, pandemic,  age_testing_strategy) %>%
+                                   bar_chart_disease_mod_current <- bar_chart_disease_mod_current %>%  group_by(simulation_index,  WHO_region, pandemic,  age_testing_strategy,  time_of_pandemic) %>%
                                      summarise(infections_difference=sum(infections_difference),
                                                hospital_difference = sum(hospital_difference),
                                                deaths_difference = sum(deaths_difference),
@@ -273,7 +240,7 @@ for (i in 1:length(ITZ_zone_done)) {
                                                .groups='drop')
                                    
                                    bar_chart_infectious_period_0 <- rbind(bar_chart_infectious_period_0, producing_data_for_barchart(overall_file, 'infection period', '0')) 
-                                   bar_chart_infectious_period_0 <- bar_chart_infectious_period_0 %>%   group_by(simulation_index,  ITZ, pandemic, age_testing_strategy) %>%
+                                   bar_chart_infectious_period_0 <- bar_chart_infectious_period_0 %>%   group_by(simulation_index,  WHO_region, pandemic, age_testing_strategy,  time_of_pandemic) %>%
                                      summarise(infections_difference=sum(infections_difference),
                                                hospital_difference = sum(hospital_difference),
                                                deaths_difference = sum(deaths_difference),
@@ -282,7 +249,7 @@ for (i in 1:length(ITZ_zone_done)) {
                                                .groups='drop')
                                    
                                    bar_chart_infectious_period_current <- rbind(bar_chart_infectious_period_current,  producing_data_for_barchart(overall_file, 'infection period', 'A.2'))
-                                   bar_chart_infectious_period_current <- bar_chart_infectious_period_current %>%   group_by(simulation_index,  ITZ, pandemic,  age_testing_strategy) %>%
+                                   bar_chart_infectious_period_current <- bar_chart_infectious_period_current %>%   group_by(simulation_index,  WHO_region, pandemic,  age_testing_strategy,  time_of_pandemic) %>%
                                      summarise(infections_difference=sum(infections_difference),
                                                hospital_difference = sum(hospital_difference),
                                                deaths_difference = sum(deaths_difference),
@@ -292,7 +259,7 @@ for (i in 1:length(ITZ_zone_done)) {
                                    
                                    
                                    line_chart_sterilising <- rbind(line_chart_sterilising, producing_data_for_linechart(overall_file, 'sterilising', 5) ) 
-                                     line_chart_sterilising <- line_chart_sterilising %>%  group_by(ITZ, pandemic,  time_of_pandemic) %>%
+                                     line_chart_sterilising <- line_chart_sterilising %>%  group_by(WHO_region, pandemic,  time_of_pandemic) %>%
                                      summarise(total_epi_costs_0=sum(total_epi_costs_0),
                                                total_epi_costs_C=sum(total_epi_costs_C),
                                                vaccs_0 = sum(vaccs_0),
@@ -300,14 +267,14 @@ for (i in 1:length(ITZ_zone_done)) {
                                                .groups='drop')
                                    
                                    line_chart_disease_mod <- line_chart_disease_mod %>% rbind(line_chart_disease_mod, producing_data_for_linechart(overall_file, 'disease mod', 5) ) 
-                                   line_chart_disease_mod <- line_chart_disease_mod %>%  group_by(ITZ, pandemic,  time_of_pandemic) %>%
+                                   line_chart_disease_mod <- line_chart_disease_mod %>%  group_by(WHO_region, pandemic,  time_of_pandemic) %>%
                                      summarise(total_epi_costs_0=sum(total_epi_costs_0),
                                                total_epi_costs_C=sum(total_epi_costs_C),
                                                vaccs_0 = sum(vaccs_0),
                                                vaccs_C = sum(vaccs_C),
                                                .groups='drop')
                                    line_chart_infectious_period <- rbind(line_chart_infectious_period, producing_data_for_linechart(overall_file, 'infection period', 5) ) 
-                                   line_chart_infectious_period <- line_chart_infectious_period %>%   group_by(ITZ, pandemic,  time_of_pandemic) %>%
+                                   line_chart_infectious_period <- line_chart_infectious_period %>%   group_by(WHO_region, pandemic,  time_of_pandemic) %>%
                                      summarise(total_epi_costs_0=sum(total_epi_costs_0),
                                                total_epi_costs_C=sum(total_epi_costs_C),
                                                vaccs_0 = sum(vaccs_0),
@@ -329,131 +296,765 @@ for (i in 1:length(ITZ_zone_done)) {
                                    bc_dm_cu <- producing_data_for_barchart_overall(bar_chart_disease_mod_current)
                                    bc_ip_0  <- producing_data_for_barchart_overall(bar_chart_infectious_period_0)
                                    bc_ip_cu <- producing_data_for_barchart_overall(bar_chart_infectious_period_current)
+                                  
                                    
-                                   plot_ster_0 <- ggplot(bc_ster_0, aes(x = ITZ, y = mean_value / 1e6, fill = ITZ)) +
-                                     geom_bar(stat = "identity", color = "black") +
-                                     scale_fill_brewer(palette = "Set2") + 
-                                     geom_errorbar(aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6), width = 0.2) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y",
-                                                labeller = label_wrap_gen(width = 10)) +
-                                     labs(
-                                       x = "ITZ",
-                                       y = "Difference between seasonal and pandemic (millions)",
-                                       title = "Comparison of Outcomes by ITZ and Pandemic Type NGIVs vs no vaccination (sterilising)"
-                                     ) +
-                                     theme_bw() +
-                                     theme(
-                                       axis.text.x = element_text(angle = 45, hjust = 1),
-                                       strip.text = element_text(size = 10)
-                                     )
-                                   
-                                   plot_ster_cu <- ggplot(bc_ster_cu, aes(x = ITZ, y = mean_value / 1e6, fill = ITZ)) +
-                                     geom_bar(stat = "identity", color = "black") +
-                                     scale_fill_brewer(palette = "Set2") + 
-                                     geom_errorbar(aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6), width = 0.2) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y",
-                                                labeller = label_wrap_gen(width = 10)) +
-                                     labs(
-                                       x = "ITZ",
-                                       y = "Difference between seasonal and pandemic (millions)",
-                                       title = "Comparison of Outcomes by ITZ and Pandemic Type NGIVs vs current vaccination (disease-modifying)"
-                                     ) +
-                                     theme_bw() +
-                                     theme(
-                                       axis.text.x = element_text(angle = 45, hjust = 1),
-                                       strip.text = element_text(size = 10)
-                                     )
+                                   ###### sterilising  no ######
                                    
                                    
-                                   plot_dm_0 <- ggplot(bc_dm_0, aes(x = ITZ, y = mean_value / 1e6, fill = ITZ)) +
-                                     geom_bar(stat = "identity", color = "black") +
-                                     scale_fill_brewer(palette = "Set2") + 
-                                     geom_errorbar(aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6), width = 0.2) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y",
-                                                labeller = label_wrap_gen(width = 10)) +
-                                     labs(
-                                       x = "ITZ",
-                                       y = "Difference between seasonal and pandemic (millions)",
-                                       title = "Comparison of Outcomes by ITZ and Pandemic Type NGIVs vs no vaccination (disease-modifying)"
-                                     ) +
-                                     theme_bw() +
-                                     theme(
-                                       axis.text.x = element_text(angle = 45, hjust = 1),
-                                       strip.text = element_text(size = 10)
-                                     )
+                                   bc_ster_0$pandemic <- as.factor(bc_ster_0$pandemic)
                                    
-                                   plot_dm_cu <- ggplot(bc_dm_cu, aes(x = ITZ, y = mean_value / 1e6, fill = ITZ)) +
-                                     geom_bar(stat = "identity", color = "black") +
-                                     scale_fill_brewer(palette = "Set2") + 
-                                     geom_errorbar(aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6), width = 0.2) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y",
-                                                labeller = label_wrap_gen(width = 10)) +
-                                     labs(
-                                       x = "ITZ",
-                                       y = "Difference between seasonal and pandemic (millions)",
-                                       title = "Comparison of Outcomes by ITZ and Pandemic Type NGIVs vs current vaccination (disease-modifying)"
-                                     ) +
-                                     theme_bw() +
-                                     theme(
-                                       axis.text.x = element_text(angle = 45, hjust = 1),
-                                       strip.text = element_text(size = 10)
-                                     )
-                                   
-                                   plot_ip_0 <- ggplot(bc_ip_0, aes(x = ITZ, y = mean_value / 1e6, fill = ITZ)) +
-                                     geom_bar(stat = "identity", color = "black") +
-                                     scale_fill_brewer(palette = "Set2") + 
-                                     geom_errorbar(aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6), width = 0.2) +
-                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y",
-                                                labeller = label_wrap_gen(width = 10)) +
-                                     labs(
-                                       x = "ITZ",
-                                       y = "Difference between seasonal and pandemic (millions)",
-                                       title = "Comparison of Outcomes by ITZ and Pandemic Type NGIVs vs no vaccination (Infectious period-modifying)"
-                                     ) +
-                                     theme_bw() +
-                                     theme(
-                                       axis.text.x = element_text(angle = 45, hjust = 1),
-                                       strip.text = element_text(size = 10)
-                                     )
-                                   
-                                   plot_ip_cu <- ggplot(bc_ip_cu, aes(x = ITZ, y = mean_value / 1e6, fill = ITZ)) +
-                                     geom_bar(stat = "identity", color = "black") +
-                                     geom_errorbar(aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6), width = 0.2) +
-                                      scale_fill_brewer(palette = "Set2") + 
-                                     facet_grid(rows = vars(Outcome), cols = vars(pandemic, age_testing_strategy), scales = "free_y",
-                                                labeller = label_wrap_gen(width = 10)) +
-                                     labs(
-                                       x = "ITZ",
-                                       y = "Difference between seasonal and pandemic (millions)",
-                                       title = "Comparison of Outcomes by ITZ and Pandemic Type NGIVs vs current vaccination (Infectious period-modifying) "
-                                     ) +
-                                     theme_bw() +
-                                     theme(
-                                       axis.text.x = element_text(angle = 45, hjust = 1),
-                                       strip.text = element_text(size = 10)
-                                     )
-                                   
-                                   line_chart_sterilising$ITZ <- factor(
-                                     line_chart_sterilising$ITZ,
-                                     levels = c(1, 2, 3,4,5,6,7),
-                                     labels = c("Africa", "Asia-Europe", "Eastern and Southern Asia",
-                                                "Europe", "Northern America", "Oceania-Melanesia-Polynesia",
-                                                "Southern America")
+                                   outcome_labels <- c(
+                                     "Infections" = "Infections",
+                                     "Hospitalisations" = "Hospitalisations",
+                                     "Deaths" = "Deaths",
+                                     "DALYs" = "DALYs",
+                                     "Cost" = "Cost"
                                    )
                                    
-                                   line_graph_ster <- ggplot(line_chart_sterilising, aes(x = time_of_pandemic, y = threshold_price, color = ITZ, group = ITZ)) +
+                                   bc_ster_0$WHO_region_recoded <- recode(
+                                     bc_ster_0$WHO_region,
+                                     "Region of the Americas" = "Region of \n the Americas",
+                                     "Western Pacific Region" = "Western\nPacific\nRegion",
+                                     "South-East Asia Region" = "South-East\nAsia Region",
+                                     "Eastern Mediterranean Region" = "Eastern\nMediterranean\nRegion",
+                                     "European Region" = "European\nRegion",
+                                     "African Region" = "African\nRegion"
+                                   )
+                                   
+                                   
+                                   bc_ster_0$pandemic = recode(bc_ster_0$pandemic,
+                                                               '1918' = 'Scenario One',
+                                                               '1957'='Scenario Two',
+                                                               '2009' = 'Scenario Three')
+                                   
+                                   bc_ster_0$Outcome <- factor(bc_ster_0$Outcome, levels = rev(c("Cost", "DALYs","Deaths",   "Hospitalisations",  "Infections")))
+                                   
+                          
+                                   
+                                   strategy_labels <- c(
+                                     "0-10" = "Ages 0–10 Vaccinated",
+                                     "65+" = "Ages 65+ Vaccinated"
+                                   )
+                                   
+                                   # Now plot
+                                   plot_ster_0 <- ggplot(bc_ster_0, aes(x = WHO_region_recoded, y = mean_value / 1e6, fill = pandemic)) +
+                                     geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+                                     geom_errorbar(
+                                       aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6),
+                                       position = position_dodge(width = 0.9), width = 0.2
+                                     ) +
+                                     scale_fill_manual(
+                                       values = c(
+                                         "Scenario One" = "#FFC1C2",   # pink
+                                         "Scenario Two" = "#C1C3FF",   # purple/blue
+                                         "Scenario Three" = "grey"       # grey
+                                       ),
+                                       name = "Pandemic"
+                                     ) + 
+                                     scale_y_continuous(labels = scales::label_comma())+
+                                     facet_grid(Outcome ~ age_testing_strategy, scales = "free_y", labeller = labeller(
+                                       Outcome = outcome_labels,
+                                       age_testing_strategy = strategy_labels
+                                     )
+                                     ) +
+                                     labs(
+                                       x = "WHO region",
+                                       y = "Difference between seasonal and pandemic (millions)"
+                                     ) +
+                                     theme_bw(base_size = 14) +  # Makes everything bigger
+                                     theme(
+                                       axis.text.x = element_text(angle = 45, hjust = 1),
+                                       strip.text = element_text(size = 9),             # Bigger facet labels
+                                       legend.position = "top",                           # Move legend to top
+                                       legend.title = element_text(size = 12),
+                                       legend.text = element_text(size = 10),
+                                       panel.spacing = unit(0.8, "lines"),                # More space between facets
+                                       plot.title = element_text(hjust = 0.5, size = 16)  # Centered and larger title
+                                     )
+                                   
+                                   bc_ster_0_prop <- bc_ster_0
+                                   WHO_region_scalars = data.frame(
+                                     WHO_region = c('African Region', 'Eastern Mediterranean Region', 'European Region',
+                                                    'Region of the Americas', 'South-East Asia Region', 'Western Pacific Region'),
+                                     scalar = c(1400000000,700000000, 930000000, 1100000000,2000000000, 2100000000  )
+                                   ) 
+                                   
+                                   bc_ster_0_prop <- bc_ster_0_prop %>%
+                                     left_join(WHO_region_scalars, by = "WHO_region")
+                                   
+                                   bc_ster_0_prop <- bc_ster_0_prop %>%
+                                     mutate(
+                                       mean_value_adj = mean_value / scalar,
+                                       lower_ci_adj = lower_ci / scalar,
+                                       upper_ci_adj = upper_ci / scalar
+                                     )
+                                   
+                                   
+                                   plot_ster_0_prop <- ggplot(bc_ster_0_prop, aes(x = WHO_region_recoded, y = mean_value_adj, fill = pandemic)) +
+                                     geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+                                     geom_errorbar(
+                                       aes(ymin = lower_ci_adj / 1e6, ymax = upper_ci_adj / 1e6),
+                                       position = position_dodge(width = 0.9), width = 0.2
+                                     ) +
+                                     scale_fill_manual(
+                                       values = c(
+                                         "Scenario One" = "#FFC1C2",   # pink
+                                         "Scenario Two" = "#C1C3FF",   # purple/blue
+                                         "Scenario Three" = "grey"       # grey
+                                       ),
+                                       name = "Pandemic"
+                                     ) +
+                                     scale_y_continuous(labels = scales::label_comma())+
+                                     facet_grid(Outcome ~ age_testing_strategy, scales = "free_y", labeller = labeller(
+                                       Outcome = outcome_labels,
+                                       age_testing_strategy = strategy_labels
+                                     )
+                                     ) +
+                                     labs(
+                                       x = "WHO region",
+                                       y = "Difference between seasonal and pandemic standardising for population of region",
+                                       title = "Comparison of Outcomes by WHO region and Pandemic Type\n Universal NGIVs vs No Vaccination (Sterilising)"
+                                     ) +
+                                     theme_bw(base_size = 14) +  # Makes everything bigger
+                                     theme(
+                                       axis.text.x = element_text(angle = 45, hjust = 1),
+                                       strip.text = element_text(size = 9),             # Bigger facet labels
+                                       legend.position = "top",                           # Move legend to top
+                                       legend.title = element_text(size = 12),
+                                       legend.text = element_text(size = 10),
+                                       panel.spacing = unit(0.8, "lines"),                # More space between facets
+                                       plot.title = element_text(hjust = 0.5, size = 16)  # Centered and larger title
+                                     )
+                                   
+                                   ###### sterilising  current ######
+                                   
+                                   bc_ster_cu$pandemic <- as.factor(bc_ster_cu$pandemic)
+                                   
+                                   bc_ster_cu$pandemic = recode(bc_ster_cu$pandemic,
+                                                               '1918' = 'Scenario One',
+                                                               '1957'='Scenario Two',
+                                                               '2009' = 'Scenario Three')
+                                   
+                                   bc_ster_cu$Outcome <- factor(bc_ster_cu$Outcome, levels = rev(c("Cost", "DALYs","Deaths",   "Hospitalisations",  "Infections")))
+                                   
+                                   bc_ster_cu$WHO_region_recoded <- recode(
+                                     bc_ster_cu$WHO_region,
+                                     "Region of the Americas" = "Region of \n the Americas",
+                                     "Western Pacific Region" = "Western\nPacific\nRegion",
+                                     "South-East Asia Region" = "South-East\nAsia Region",
+                                     "Eastern Mediterranean Region" = "Eastern\nMediterranean\nRegion",
+                                     "European Region" = "European\nRegion",
+                                     "African Region" = "African\nRegion"
+                                   )
+                                   
+                                   
+                                   
+                                   outcome_labels <- c(
+                                     "Infections" = "Infections",
+                                     "Hospitalisations" = "Hospitalisations",
+                                     "Deaths" = "Deaths",
+                                     "DALYs" = "DALYs",
+                                     "Cost" = "Cost"
+                                   )
+                                   
+                                   strategy_labels <- c(
+                                     "0-10" = "Ages 0–10 Vaccinated",
+                                     "65+" = "Ages 65+ Vaccinated"
+                                   )
+                                   
+                                   # Now plot
+                                   plot_ster_cu <- ggplot(bc_ster_cu, aes(x = WHO_region_recoded, y = mean_value / 1e6, fill = pandemic)) +
+                                     geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+                                     geom_errorbar(
+                                       aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6),
+                                       position = position_dodge(width = 0.9), width = 0.2
+                                     ) +
+                                     scale_fill_manual(
+                                       values = c(
+                                         "Scenario One" = "#FFC1C2",   # pink
+                                         "Scenario Two" = "#C1C3FF",   # purple/blue
+                                         "Scenario Three" = "grey"       # grey
+                                       ),
+                                       name = "Pandemic"
+                                     ) +
+                                     scale_y_continuous(labels = scales::label_comma())+
+                                     facet_grid(Outcome ~ age_testing_strategy, scales = "free_y", labeller = labeller(
+                                       Outcome = outcome_labels,
+                                       age_testing_strategy = strategy_labels
+                                     )
+                                     ) +
+                                     labs(
+                                       x = "WHO region",
+                                       y = "Difference between seasonal and pandemic (millions)"
+                                     ) +
+                                     theme_bw(base_size = 14) +  # Makes everything bigger
+                                     theme(
+                                       axis.text.x = element_text(angle = 45, hjust = 1),
+                                       strip.text = element_text(size = 9),             # Bigger facet labels
+                                       legend.position = "top",                           # Move legend to top
+                                       legend.title = element_text(size = 12),
+                                       legend.text = element_text(size = 10),
+                                       panel.spacing = unit(0.8, "lines"),                # More space between facets
+                                       plot.title = element_text(hjust = 0.5, size = 16)  # Centered and larger title
+                                     )
+                                   
+                                   bc_ster_cu_prop <- bc_ster_cu
+                                   
+                                   
+                                   bc_ster_cu_prop <- bc_ster_cu_prop %>%
+                                     left_join(WHO_region_scalars, by = "WHO_region")
+                                   
+                                   bc_ster_cu_prop <- bc_ster_cu_prop %>%
+                                     mutate(
+                                       mean_value_adj = mean_value / scalar,
+                                       lower_ci_adj = lower_ci / scalar,
+                                       upper_ci_adj = upper_ci / scalar
+                                     )
+                                   
+                                   
+                                   plot_ster_cu_prop <- ggplot(bc_ster_cu_prop, aes(x = WHO_region_recoded, y = mean_value_adj, fill = pandemic)) +
+                                     geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+                                     geom_errorbar(
+                                       aes(ymin = lower_ci_adj / 1e6, ymax = upper_ci_adj / 1e6),
+                                       position = position_dodge(width = 0.9), width = 0.2
+                                     ) +
+                                     scale_fill_manual(
+                                       values = c(
+                                         "Scenario One" = "#FFC1C2",   # pink
+                                         "Scenario Two" = "#C1C3FF",   # purple/blue
+                                         "Scenario Three" = "grey"       # grey
+                                       ),
+                                       name = "Pandemic"
+                                     ) +
+                                     scale_y_continuous(labels = scales::label_comma())+
+                                     facet_grid(Outcome ~ age_testing_strategy, scales = "free_y", labeller = labeller(
+                                       Outcome = outcome_labels,
+                                       age_testing_strategy = strategy_labels
+                                     )
+                                     ) +
+                                     labs(
+                                       x = "WHO region",
+                                       y = "Difference between seasonal and pandemic standardising for population of region",
+                                       title = "Comparison of Outcomes by WHO region and Pandemic Type\n Universal NGIVs vs Current Vaccination (Sterilising)"
+                                     ) +
+                                     theme_bw(base_size = 14) +  # Makes everything bigger
+                                     theme(
+                                       axis.text.x = element_text(angle = 45, hjust = 1),
+                                       strip.text = element_text(size = 9),             # Bigger facet labels
+                                       legend.position = "top",                           # Move legend to top
+                                       legend.title = element_text(size = 12),
+                                       legend.text = element_text(size = 10),
+                                       panel.spacing = unit(0.8, "lines"),                # More space between facets
+                                       plot.title = element_text(hjust = 0.5, size = 16)  # Centered and larger title
+                                     )
+                                   
+                                   ###### disease-modifying  no ######
+                                    
+                                   bc_dm_0$pandemic <- as.factor(bc_dm_0$pandemic)
+                                   
+                                   bc_dm_0$pandemic = recode(bc_dm_0$pandemic,
+                                                               '1918' = 'Scenario One',
+                                                               '1957'='Scenario Two',
+                                                               '2009' = 'Scenario Three')
+                                   
+                                   bc_dm_0$Outcome <- factor(bc_dm_0$Outcome, levels = rev(c("Cost", "DALYs","Deaths",   "Hospitalisations",  "Infections")))
+                                   
+                                   bc_dm_0$WHO_region_recoded <- recode(
+                                     bc_dm_0$WHO_region,
+                                     "Region of the Americas" = "Region of \n the Americas",
+                                     "Western Pacific Region" = "Western\nPacific\nRegion",
+                                     "South-East Asia Region" = "South-East\nAsia Region",
+                                     "Eastern Mediterranean Region" = "Eastern\nMediterranean\nRegion",
+                                     "European Region" = "European\nRegion",
+                                     "African Region" = "African\nRegion"
+                                   )
+                                   
+                                   
+                                   outcome_labels <- c(
+                                     "Infections" = "Infections",
+                                     "Hospitalisations" = "Hospitalisations",
+                                     "Deaths" = "Deaths",
+                                     "DALYs" = "DALYs",
+                                     "Cost" = "Cost"
+                                   )
+                                   
+                                   strategy_labels <- c(
+                                     "0-10" = "Ages 0–10 Vaccinated",
+                                     "65+" = "Ages 65+ Vaccinated"
+                                   )
+                                   
+                                   # Now plot
+                                   plot_dm_0 <- ggplot(bc_dm_0, aes(x = WHO_region_recoded, y = mean_value / 1e6, fill = pandemic)) +
+                                     geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+                                     geom_errorbar(
+                                       aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6),
+                                       position = position_dodge(width = 0.9), width = 0.2
+                                     ) +
+                                     scale_fill_manual(
+                                       values = c(
+                                         "Scenario One" = "#FFC1C2",   # pink
+                                         "Scenario Two" = "#C1C3FF",   # purple/blue
+                                         "Scenario Three" = "grey"       # grey
+                                       ),
+                                       name = "Pandemic"
+                                     ) +
+                                     scale_y_continuous(labels = scales::label_comma())+
+                                     facet_grid(Outcome ~ age_testing_strategy, scales = "free_y", labeller = labeller(
+                                       Outcome = outcome_labels,
+                                       age_testing_strategy = strategy_labels
+                                     )
+                                     ) +
+                                     labs(
+                                       x = "WHO region",
+                                       y = "Difference between seasonal and pandemic (millions)"
+                                     ) +
+                                     theme_bw(base_size = 14) +  # Makes everything bigger
+                                     theme(
+                                       axis.text.x = element_text(angle = 45, hjust = 1),
+                                       strip.text = element_text(size = 9),             # Bigger facet labels
+                                       legend.position = "top",                           # Move legend to top
+                                       legend.title = element_text(size = 12),
+                                       legend.text = element_text(size = 10),
+                                       panel.spacing = unit(0.8, "lines"),                # More space between facets
+                                       plot.title = element_text(hjust = 0.5, size = 16)  # Centered and larger title
+                                     )
+                                   
+                                   bc_dm_0_prop <- bc_dm_0
+                                   
+                                   
+                                   bc_dm_0_prop <- bc_dm_0_prop %>%
+                                     left_join(WHO_region_scalars, by = "WHO_region")
+                                   
+                                   bc_dm_0_prop <- bc_dm_0_prop %>%
+                                     mutate(
+                                       mean_value_adj = mean_value / scalar,
+                                       lower_ci_adj = lower_ci / scalar,
+                                       upper_ci_adj = upper_ci / scalar
+                                     )
+                                   
+                                   
+                                   plot_dm_0_prop <- ggplot(bc_dm_0_prop, aes(x = WHO_region_recoded, y = mean_value_adj, fill = pandemic)) +
+                                     geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+                                     geom_errorbar(
+                                       aes(ymin = lower_ci_adj / 1e6, ymax = upper_ci_adj / 1e6),
+                                       position = position_dodge(width = 0.9), width = 0.2
+                                     ) +
+                                     scale_fill_manual(
+                                       values = c(
+                                         "Scenario One" = "#FFC1C2",   # pink
+                                         "Scenario Two" = "#C1C3FF",   # purple/blue
+                                         "Scenario Three" = "grey"       # grey
+                                       ),
+                                       name = "Pandemic"
+                                     ) +
+                                     scale_y_continuous(labels = scales::label_comma())+
+                                     facet_grid(Outcome ~ age_testing_strategy, scales = "free_y", labeller = labeller(
+                                       Outcome = outcome_labels,
+                                       age_testing_strategy = strategy_labels
+                                     )
+                                     ) +
+                                     labs(
+                                       x = "WHO region",
+                                       y = "Difference between seasonal and pandemic standardising for population of region"
+                                     ) +
+                                     theme_bw(base_size = 14) +  # Makes everything bigger
+                                     theme(
+                                       axis.text.x = element_text(angle = 45, hjust = 1),
+                                       strip.text = element_text(size = 9),             # Bigger facet labels
+                                       legend.position = "top",                           # Move legend to top
+                                       legend.title = element_text(size = 12),
+                                       legend.text = element_text(size = 10),
+                                       panel.spacing = unit(0.8, "lines"),                # More space between facets
+                                       plot.title = element_text(hjust = 0.5, size = 16)  # Centered and larger title
+                                     )
+                                   
+                                   ###### dm  current ######
+                                   
+                                   bc_dm_cu$pandemic <- as.factor(bc_dm_cu$pandemic)
+                                   
+                                   bc_dm_cu$pandemic = recode(bc_dm_cu$pandemic,
+                                                               '1918' = 'Scenario One',
+                                                               '1957'='Scenario Two',
+                                                               '2009' = 'Scenario Three')
+                                   
+                                   bc_dm_cu$Outcome <- factor(bc_dm_cu$Outcome, levels = rev(c("Cost", "DALYs","Deaths",   "Hospitalisations",  "Infections")))
+                                   
+                                   bc_dm_cu$WHO_region_recoded <- recode(
+                                     bc_dm_cu$WHO_region,
+                                     "Region of the Americas" = "Region of \n the Americas",
+                                     "Western Pacific Region" = "Western\nPacific\nRegion",
+                                     "South-East Asia Region" = "South-East\nAsia Region",
+                                     "Eastern Mediterranean Region" = "Eastern\nMediterranean\nRegion",
+                                     "European Region" = "European\nRegion",
+                                     "African Region" = "African\nRegion"
+                                   )
+                                   
+                                   
+                                   outcome_labels <- c(
+                                     "Infections" = "Infections",
+                                     "Hospitalisations" = "Hospitalisations",
+                                     "Deaths" = "Deaths",
+                                     "DALYs" = "DALYs",
+                                     "Cost" = "Cost"
+                                   )
+                                   
+                                   strategy_labels <- c(
+                                     "0-10" = "Ages 0–10 Vaccinated",
+                                     "65+" = "Ages 65+ Vaccinated"
+                                   )
+                                   
+                                   # Now plot
+                                   plot_dm_cu <- ggplot(bc_dm_cu, aes(x = WHO_region_recoded, y = mean_value / 1e6, fill = pandemic)) +
+                                     geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+                                     geom_errorbar(
+                                       aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6),
+                                       position = position_dodge(width = 0.9), width = 0.2
+                                     ) +
+                                     scale_fill_manual(
+                                       values = c(
+                                         "Scenario One" = "#FFC1C2",   # pink
+                                         "Scenario Two" = "#C1C3FF",   # purple/blue
+                                         "Scenario Three" = "grey"       # grey
+                                       ),
+                                       name = "Pandemic"
+                                     ) +
+                                     scale_y_continuous(labels = scales::label_comma())+
+                                     facet_grid(Outcome ~ age_testing_strategy, scales = "free_y", labeller = labeller(
+                                       Outcome = outcome_labels,
+                                       age_testing_strategy = strategy_labels
+                                     )
+                                     ) +
+                                     labs(
+                                       x = "WHO region",
+                                       y = "Difference between seasonal and pandemic (millions)"
+                                     ) +
+                                     theme_bw(base_size = 14) +  # Makes everything bigger
+                                     theme(
+                                       axis.text.x = element_text(angle = 45, hjust = 1),
+                                       strip.text = element_text(size = 9),             # Bigger facet labels
+                                       legend.position = "top",                           # Move legend to top
+                                       legend.title = element_text(size = 12),
+                                       legend.text = element_text(size = 10),
+                                       panel.spacing = unit(0.8, "lines"),                # More space between facets
+                                       plot.title = element_text(hjust = 0.5, size = 16)  # Centered and larger title
+                                     )
+                                   
+                                   bc_dm_cu_prop <- bc_dm_cu
+                                   
+                                   bc_dm_cu_prop <- bc_dm_cu_prop %>%
+                                     left_join(WHO_region_scalars, by = "WHO_region")
+                                   
+                                   bc_dm_cu_prop <- bc_dm_cu_prop %>%
+                                     mutate(
+                                       mean_value_adj = mean_value / scalar,
+                                       lower_ci_adj = lower_ci / scalar,
+                                       upper_ci_adj = upper_ci / scalar
+                                     )
+                                   
+                                   
+                                   plot_dm_cu_prop <- ggplot(bc_dm_cu_prop, aes(x = WHO_region_recoded, y = mean_value_adj, fill = pandemic)) +
+                                     geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+                                     geom_errorbar(
+                                       aes(ymin = lower_ci_adj / 1e6, ymax = upper_ci_adj / 1e6),
+                                       position = position_dodge(width = 0.9), width = 0.2
+                                     ) +
+                                     scale_fill_manual(
+                                       values = c(
+                                         "Scenario One" = "#FFC1C2",   # pink
+                                         "Scenario Two" = "#C1C3FF",   # purple/blue
+                                         "Scenario Three" = "grey"       # grey
+                                       ),
+                                       name = "Pandemic"
+                                     ) +
+                                     scale_y_continuous(labels = scales::label_comma())+
+                                     facet_grid(Outcome ~ age_testing_strategy, scales = "free_y", labeller = labeller(
+                                       Outcome = outcome_labels,
+                                       age_testing_strategy = strategy_labels
+                                     )
+                                     ) +
+                                     labs(
+                                       x = "WHO region",
+                                       y = "Difference between seasonal and pandemic standardising for population of region"
+                                     ) +
+                                     theme_bw(base_size = 14) +  # Makes everything bigger
+                                     theme(
+                                       axis.text.x = element_text(angle = 45, hjust = 1),
+                                       strip.text = element_text(size = 9),             # Bigger facet labels
+                                       legend.position = "top",                           # Move legend to top
+                                       legend.title = element_text(size = 12),
+                                       legend.text = element_text(size = 10),
+                                       panel.spacing = unit(0.8, "lines"),                # More space between facets
+                                       plot.title = element_text(hjust = 0.5, size = 16)  # Centered and larger title
+                                     )
+                                   
+                                   ###### infectios period modifying  no ######
+                                   
+                                   bc_ip_0$pandemic <- as.factor(bc_ip_0$pandemic)
+                                   
+                                   bc_ip_0$pandemic = recode(bc_ip_0$pandemic,
+                                                               '1918' = 'Scenario One',
+                                                               '1957'='Scenario Two',
+                                                               '2009' = 'Scenario Three')
+                                   
+                                   bc_ip_0$Outcome <- factor(bc_ip_0$Outcome, levels = rev(c("Cost", "DALYs","Deaths",   "Hospitalisations",  "Infections")))
+                                   
+                                   bc_ip_0$WHO_region_recoded <- recode(
+                                     bc_ip_0$WHO_region,
+                                     "Region of the Americas" = "Region of \n the Americas",
+                                     "Western Pacific Region" = "Western\nPacific\nRegion",
+                                     "South-East Asia Region" = "South-East\nAsia Region",
+                                     "Eastern Mediterranean Region" = "Eastern\nMediterranean\nRegion",
+                                     "European Region" = "European\nRegion",
+                                     "African Region" = "African\nRegion"
+                                   )
+                                   
+                                   outcome_labels <- c(
+                                     "Infections" = "Infections",
+                                     "Hospitalisations" = "Hospitalisations",
+                                     "Deaths" = "Deaths",
+                                     "DALYs" = "DALYs",
+                                     "Cost" = "Cost"
+                                   )
+                                   
+                                   strategy_labels <- c(
+                                     "0-10" = "Ages 0–10 Vaccinated",
+                                     "65+" = "Ages 65+ Vaccinated"
+                                   )
+                                   
+                                   # Now plot
+                                   plot_ip_0 <- ggplot(bc_ip_0, aes(x = WHO_region_recoded, y = mean_value / 1e6, fill = pandemic)) +
+                                     geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+                                     geom_errorbar(
+                                       aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6),
+                                       position = position_dodge(width = 0.9), width = 0.2
+                                     ) +
+                                     scale_fill_manual(
+                                       values = c(
+                                         "Scenario One" = "#FFC1C2",   # pink
+                                         "Scenario Two" = "#C1C3FF",   # purple/blue
+                                         "Scenario Three" = "grey"       # grey
+                                       ),
+                                       name = "Pandemic"
+                                     ) +
+                                     scale_y_continuous(labels = scales::label_comma())+
+                                     facet_grid(Outcome ~ age_testing_strategy, scales = "free_y", labeller = labeller(
+                                       Outcome = outcome_labels,
+                                       age_testing_strategy = strategy_labels
+                                     )
+                                     ) +
+                                     labs(
+                                       x = "WHO region",
+                                       y = "Difference between seasonal and pandemic (millions)"
+                                     ) +
+                                     theme_bw(base_size = 14) +  # Makes everything bigger
+                                     theme(
+                                       axis.text.x = element_text(angle = 45, hjust = 1),
+                                       strip.text = element_text(size = 9),             # Bigger facet labels
+                                       legend.position = "top",                           # Move legend to top
+                                       legend.title = element_text(size = 12),
+                                       legend.text = element_text(size = 10),
+                                       panel.spacing = unit(0.8, "lines"),                # More space between facets
+                                       plot.title = element_text(hjust = 0.5, size = 16)  # Centered and larger title
+                                     )
+                                   
+                                   bc_ip_0_prop <- bc_ip_0
+                                  
+                                   
+                                   bc_ip_0_prop <- bc_ip_0_prop %>%
+                                     left_join(WHO_region_scalars, by = "WHO_region")
+                                   
+                                   bc_ip_0_prop <- bc_ip_0_prop %>%
+                                     mutate(
+                                       mean_value_adj = mean_value / scalar,
+                                       lower_ci_adj = lower_ci / scalar,
+                                       upper_ci_adj = upper_ci / scalar
+                                     )
+                                   
+                                   
+                                   plot_ip_0_prop <- ggplot(bc_ip_0_prop, aes(x = WHO_region_recoded, y = mean_value_adj, fill = pandemic)) +
+                                     geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+                                     geom_errorbar(
+                                       aes(ymin = lower_ci_adj / 1e6, ymax = upper_ci_adj / 1e6),
+                                       position = position_dodge(width = 0.9), width = 0.2
+                                     ) +
+                                     scale_fill_manual(
+                                       values = c(
+                                         "Scenario One" = "#FFC1C2",   # pink
+                                         "Scenario Two" = "#C1C3FF",   # purple/blue
+                                         "Scenario Three" = "grey"       # grey
+                                       ),
+                                       name = "Pandemic"
+                                     ) +
+                                     scale_y_continuous(labels = scales::label_comma())+
+                                     facet_grid(Outcome ~ age_testing_strategy, scales = "free_y", labeller = labeller(
+                                       Outcome = outcome_labels,
+                                       age_testing_strategy = strategy_labels
+                                     )
+                                     ) +
+                                     labs(
+                                       x = "WHO region",
+                                       y = "Difference between seasonal and pandemic standardising for population of region"
+                                     ) +
+                                     theme_bw(base_size = 14) +  # Makes everything bigger
+                                     theme(
+                                       axis.text.x = element_text(angle = 45, hjust = 1),
+                                       strip.text = element_text(size = 9),             # Bigger facet labels
+                                       legend.position = "top",                           # Move legend to top
+                                       legend.title = element_text(size = 12),
+                                       legend.text = element_text(size = 10),
+                                       panel.spacing = unit(0.8, "lines"),                # More space between facets
+                                       plot.title = element_text(hjust = 0.5, size = 16)  # Centered and larger title
+                                     )
+                                   
+                                   ###### infectios period modifying  current ######
+                                   
+                                   bc_ip_cu$pandemic <- as.factor(bc_ip_cu$pandemic)
+                                   
+                                   bc_ip_cu$pandemic = recode(bc_ip_cu$pandemic,
+                                                               '1918' = 'Scenario One',
+                                                               '1957'='Scenario Two',
+                                                               '2009' = 'Scenario Three')
+                                   
+                                   bc_ip_cu$Outcome <- factor(bc_ip_cu$Outcome, levels = rev(c("Cost", "DALYs","Deaths",   "Hospitalisations",  "Infections")))
+                                   
+                                   bc_ip_cu$WHO_region_recoded <- recode(
+                                     bc_ip_cu$WHO_region,
+                                     "Region of the Americas" = "Region of \n the Americas",
+                                     "Western Pacific Region" = "Western\nPacific\nRegion",
+                                     "South-East Asia Region" = "South-East\nAsia Region",
+                                     "Eastern Mediterranean Region" = "Eastern\nMediterranean\nRegion",
+                                     "European Region" = "European\nRegion",
+                                     "African Region" = "African\nRegion"
+                                   )
+                                   
+                                   outcome_labels <- c(
+                                     "Infections" = "Infections",
+                                     "Hospitalisations" = "Hospitalisations",
+                                     "Deaths" = "Deaths",
+                                     "DALYs" = "DALYs",
+                                     "Cost" = "Cost"
+                                   )
+                                   
+                                   strategy_labels <- c(
+                                     "0-10" = "Ages 0–10 Vaccinated",
+                                     "65+" = "Ages 65+ Vaccinated"
+                                   )
+                                   
+                                   # Now plot
+                                   plot_ip_cu <- ggplot(bc_ip_cu, aes(x = WHO_region_recoded, y = mean_value / 1e6, fill = pandemic)) +
+                                     geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+                                     geom_errorbar(
+                                       aes(ymin = lower_ci / 1e6, ymax = upper_ci / 1e6),
+                                       position = position_dodge(width = 0.9), width = 0.2
+                                     ) +
+                                     scale_fill_manual(
+                                       values = c(
+                                         "Scenario One" = "#FFC1C2",   # pink
+                                         "Scenario Two" = "#C1C3FF",   # purple/blue
+                                         "Scenario Three" = "grey"       # grey
+                                       ),
+                                       name = "Pandemic"
+                                     ) +
+                                     scale_y_continuous(labels = scales::label_comma())+
+                                     facet_grid(Outcome ~ age_testing_strategy, scales = "free_y", labeller = labeller(
+                                       Outcome = outcome_labels,
+                                       age_testing_strategy = strategy_labels
+                                     )
+                                     ) +
+                                     labs(
+                                       x = "WHO region",
+                                       y = "Difference between seasonal and pandemic (millions)"
+                                     ) +
+                                     theme_bw(base_size = 14) +  # Makes everything bigger
+                                     theme(
+                                       axis.text.x = element_text(angle = 45, hjust = 1),
+                                       strip.text = element_text(size = 9),             # Bigger facet labels
+                                       legend.position = "top",                           # Move legend to top
+                                       legend.title = element_text(size = 12),
+                                       legend.text = element_text(size = 10),
+                                       panel.spacing = unit(0.8, "lines"),                # More space between facets
+                                       plot.title = element_text(hjust = 0.5, size = 16)  # Centered and larger title
+                                     )
+                                   
+                                   bc_ip_cu_prop <- bc_ip_cu
+                                   
+                                   
+                                   bc_ip_cu_prop <- bc_ip_cu_prop %>%
+                                     left_join(WHO_region_scalars, by = "WHO_region")
+                                   
+                                   bc_ip_cu_prop <- bc_ip_cu_prop %>%
+                                     mutate(
+                                       mean_value_adj = mean_value / scalar,
+                                       lower_ci_adj = lower_ci / scalar,
+                                       upper_ci_adj = upper_ci / scalar
+                                     )
+                                   
+                                   
+                                   plot_ip_cu_prop <- ggplot(bc_ip_cu_prop, aes(x = WHO_region_recoded, y = mean_value_adj, fill = pandemic)) +
+                                     geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+                                     geom_errorbar(
+                                       aes(ymin = lower_ci_adj / 1e6, ymax = upper_ci_adj / 1e6),
+                                       position = position_dodge(width = 0.9), width = 0.2
+                                     ) +
+                                     scale_fill_manual(
+                                       values = c(
+                                         "Scenario One" = "#FFC1C2",   # pink
+                                         "Scenario Two" = "#C1C3FF",   # purple/blue
+                                         "Scenario Three" = "grey"       # grey
+                                       ),
+                                       name = "Pandemic"
+                                     ) +
+                                     scale_y_continuous(labels = scales::label_comma())+
+                                     facet_grid(Outcome ~ age_testing_strategy, scales = "free_y", labeller = labeller(
+                                       Outcome = outcome_labels,
+                                       age_testing_strategy = strategy_labels
+                                     )
+                                     ) +
+                                     labs(
+                                       x = "WHO region",
+                                       y = "Difference between seasonal and pandemic standardising for population of region"
+                                     ) +
+                                     theme_bw(base_size = 14) +  # Makes everything bigger
+                                     theme(
+                                       axis.text.x = element_text(angle = 45, hjust = 1),
+                                       strip.text = element_text(size = 9),             # Bigger facet labels
+                                       legend.position = "top",                           # Move legend to top
+                                       legend.title = element_text(size = 12),
+                                       legend.text = element_text(size = 10),
+                                       panel.spacing = unit(0.8, "lines"),                # More space between facets
+                                       plot.title = element_text(hjust = 0.5, size = 16)  # Centered and larger title
+                                     )
+                                  
+                                   
+                                   line_chart_sterilising$pandemic = recode(line_chart_sterilising$pandemic,
+                                                              '1918' = 'Scenario One',
+                                                              '1957'='Scenario Two',
+                                                              '2009' = 'Scenario Three')
+                                   
+                                   
+                                   line_chart_sterilising$WHO_region <- factor(
+                                     line_chart_sterilising$WHO_region,
+                                     levels = c('SEAR', 'WPR', 'AMR', 'EMR', 	
+                                                'EUR', 'AFR' ),
+                                     labels = c("South-East Asia Region", 'Western Pacific Region',
+                                                'Region of the Americas', 'Eastern Mediterranean Region',
+                                                'European Region', 'African Region'
+                                     )
+                                   )
+                                   
+                                   line_graph_ster <- ggplot(line_chart_sterilising, aes(x = time_of_pandemic, y = threshold_price, color = WHO_region, group = WHO_region)) +
                                      geom_line(size = 1) +
                                      geom_point(size = 2) +
                                      facet_wrap(~ pandemic, nrow = 1) +
-                                     scale_color_brewer(palette = "Set2") +
+                                     scale_color_manual(values = WHO_colors_2) +
                                      scale_x_continuous(
                                        breaks = seq(min(line_chart_sterilising$time_of_pandemic), max(line_chart_sterilising$time_of_pandemic), by = 1)
                                      ) +
                                      labs(
                                        x = "Year of Pandemic",
                                        y = "Threshold Price",
-                                       color = "ITZ Zone",
-                                       title = "Threshold Price Over Time by ITZ and Pandemic Type (Sterilising)"
+                                       color = "WHO Region",
+                                       title = "Threshold Price Over Time by region and Pandemic Type (Sterilising)"
                                      ) +
                                      theme_bw() +
                                      theme(
@@ -461,28 +1062,36 @@ for (i in 1:length(ITZ_zone_done)) {
                                        axis.text.x = element_text(angle = 45, hjust = 1)
                                      )
                                    
-                                   line_chart_disease_mod$ITZ <- factor(
-                                     line_chart_disease_mod$ITZ,
-                                     levels = c(1, 2, 3,4,5,6,7),
-                                     labels = c("Africa", "Asia-Europe", "Eastern and Southern Asia",
-                                                "Europe", "Northern America", "Oceania-Melanesia-Polynesia",
-                                                "Southern America")
+                                   line_chart_disease_mod$pandemic = recode(line_chart_disease_mod$pandemic,
+                                                                            '1918' = 'Scenario One',
+                                                                            '1957'='Scenario Two',
+                                                                            '2009' = 'Scenario Three')
+                                   
+                                   line_chart_disease_mod$WHO_region <- factor(
+                                     line_chart_disease_mod$WHO_region,
+                                     levels = c('SEAR', 'WPR', 'AMR', 'EMR', 	
+                                                'EUR', 'AFR' ),
+                                     labels = c("South-East Asia Region", 'Western Pacific Region',
+                                                'Region of the Americas', 'Eastern Mediterranean Region',
+                                                'European Region', 'African Region'
+                                     )
                                    )
                                    
                                    
-                                   line_graph_dm <- ggplot(line_chart_disease_mod, aes(x = time_of_pandemic, y = threshold_price, color = ITZ, group = ITZ)) +
+                                   
+                                   line_graph_dm <- ggplot(line_chart_disease_mod, aes(x = time_of_pandemic, y = threshold_price, color = WHO_region, group = WHO_region)) +
                                      geom_line(size = 1) +
                                      geom_point(size = 2) +
                                      facet_wrap(~ pandemic, nrow = 1) +
-                                     scale_color_brewer(palette = "Set2") +
+                                     scale_color_manual(values = WHO_colors_2) +
                                      scale_x_continuous(
                                        breaks = seq(min(line_chart_disease_mod$time_of_pandemic), max(line_chart_disease_mod$time_of_pandemic), by = 1)
                                      ) +
                                      labs(
                                        x = "Year of Pandemic",
                                        y = "Threshold Price",
-                                       color = "ITZ Zone",
-                                       title = "Threshold Price Over Time by ITZ and Pandemic Type (Disease modifying)"
+                                       color = "WHO Region",
+                                       title = "Threshold Price Over Time by region and Pandemic Type (Disease modifying)"
                                      ) +
                                      theme_bw() +
                                      theme(
@@ -490,27 +1099,34 @@ for (i in 1:length(ITZ_zone_done)) {
                                        axis.text.x = element_text(angle = 45, hjust = 1)
                                      )
                                    
-                                   line_chart_infectious_period$ITZ <- factor(
-                                     line_chart_infectious_period$ITZ,
-                                     levels = c(1, 2, 3,4,5,6,7),
-                                     labels = c("Africa", "Asia-Europe", "Eastern and Southern Asia",
-                                                "Europe", "Northern America", "Oceania-Melanesia-Polynesia",
-                                                "Southern America")
+                                   line_chart_infectious_period$pandemic = recode(line_chart_infectious_period$pandemic,
+                                                                            '1918' = 'Scenario One',
+                                                                            '1957'='Scenario Two',
+                                                                            '2009' = 'Scenario Three')
+                                   
+                                   line_chart_infectious_period$WHO_region <- factor(
+                                     line_chart_infectious_period$WHO_region,
+                                     levels = c('SEAR', 'WPR', 'AMR', 'EMR', 	
+                                                'EUR', 'AFR' ),
+                                     labels = c("South-East Asia Region", 'Western Pacific Region',
+                                                'Region of the Americas', 'Eastern Mediterranean Region',
+                                                'European Region', 'African Region'
+                                                )
                                    )
                                    
-                                   line_graph_ip <- ggplot(line_chart_infectious_period, aes(x = time_of_pandemic, y = threshold_price, color = ITZ, group = ITZ)) +
+                                   line_graph_ip <- ggplot(line_chart_infectious_period, aes(x = time_of_pandemic, y = threshold_price, color = WHO_region, group = WHO_region)) +
                                      geom_line(size = 1) +
                                      geom_point(size = 2) +
                                      facet_wrap(~ pandemic, nrow = 1) +
-                                     scale_color_brewer(palette = "Set2") +
+                                     scale_color_manual(values = WHO_colors_2) +
                                      scale_x_continuous(
                                        breaks = seq(min(line_chart_infectious_period$time_of_pandemic), max(line_chart_infectious_period$time_of_pandemic), by = 1)
                                      ) +
                                      labs(
                                        x = "Year of Pandemic",
                                        y = "Threshold Price",
-                                       color = "ITZ Zone",
-                                       title = "Threshold Price Over Time by ITZ and Pandemic Type (Infectious Period)"
+                                       color = "WHO region",
+                                       title = "Threshold Price Over Time by region and Pandemic Type (Infectious Period)"
                                      ) +
                                      theme_bw() +
                                      theme(

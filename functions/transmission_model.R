@@ -33,8 +33,6 @@ incidence_VS <- function(
   no_groups <- length(population_stratified)
   
   initial_infected_vector <- c(initial_infected, rep(0,8))
-  #susceptibility_vector <- c(c((0.2*1 + 0.8*susceptibility), rep(susceptibility,3)), rep(0,8))
-
   susceptibility_vector <-c(0.2+0.8*susceptibility_for_kids, susceptibility_for_kids, rep(susceptibility,2), rep(0,8) )
   
   
@@ -155,7 +153,7 @@ flu_odin <- odin::odin({
   # waning of vaccine immunity
   omega <- user()
   
-  # vacc_rel_inf in [0,1] the relative (decreased) infectiousness of vaccinated indivs
+  # vacc_rel_inf in [0,1] the relative (decreased) infectiousness of vaccinated individualss
   vacc_rel_inf <- user()
   
   #adding in the decrease in individuals' infectiousness with the vaccine 
@@ -223,11 +221,6 @@ flu_odin <- odin::odin({
   #derivative Rv = derivative of Rev (effectively vaccinated) + derivative of not effectively vaccinated
   deriv(Rv[])  <- - omega*Rv[i]  + gamma2 * I2v[i] + v[i] * (R[i]) + vacc_stop_inf*(gammav2 * I2vR[i]) + (1-vacc_stop_inf)*(v[i] * (alpha[i] * S[i]))
   
-  #add to this that those in Rev can have the same infection leaving but can set to 0 for the sterilising case
-  #will need to have the vaccinated ones having a pathway through but in the sterililising case this will not be used
-
-  
-  
   deriv(VT[]) <- + v[i]*(S[i] + E1[i] + E2[i] + I1[i] + I2[i] + R[i])
   
   # Tracking the cumulative amount of infections over time for output of incidence
@@ -252,7 +245,8 @@ flu_odin <- odin::odin({
   initial(E2v[1:no_groups]) <- 0
   initial(I1v[1:no_groups]) <- 0
   initial(I2v[1:no_groups]) <- 0
-  initial(Rv[1:no_groups]) <- (pop[i]*V0[i]) * (RV0[i])
+  initial(Rv[1:no_groups]) <- (pop[i]*V0[i]) * (RV0[i])*(1-vacc_stop_inf)
+  
   initial(Rnv[1:no_groups]) <- 0
   initial(SvR[1:no_groups]) <- (pop[i]*V0[i]) * (RV0[i])
   initial(VT[1:no_groups]) <- 0 #(pop[i]*V0[i])

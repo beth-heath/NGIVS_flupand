@@ -24,37 +24,37 @@ one_flu <- function(
     susceptibility_for_kids,
     pandemic_date
 ){
+  
+  #if a pandemic has not occured in the period then we set the pandemic date to the end of the time period
   if(length(pandemic_date)==0){
     pandemic_date <- end_date
   }
-  
-  
-  
+  #correcting country_name
   country_name <- ifelse(country_code=='XKX', 'Kosovo', countrycode(country_code, origin='iso3c', destination='country.name'))
   
   period_start_date <- last_monday(period_start_date)
   
-  
+  ### considering the scenario that the influenza strain is a pandemic
   if (as.numeric(epid_start_date) == as.numeric(pandemic_date)){
+    #setting up the start and end dates
     epid_start_date <- last_monday(epid_start_date)
     end_date <- last_monday(end_date)
-    
-    ## vaccine details, from vacc_type_list
+    ## Getting the vaccine details from the vacc_type_list for the pandemics
     vacc_details <- vacc_type_list_pand[[vaccine_program$vacc]]
     efficacy_input <- c(rep(vacc_details$VE[1 + 2*(1 - matching)], 3), vacc_details$VE[2 + 2*(1 - matching)])
+    # correcting the efficacy to be half that for pandemics
+    efficacy_input <- 0.5 * efficacy_input
     vacc_rel_inf <- vacc_details$rel_inf
     ## including the gamma variables in the calendar
     vacc_gammas <- c(vacc_details$gamma1_variable, vacc_details$gamma2_variable)
     vacc_stop_inf <- vacc_details$stop_infec_prob
     
   } else{
+    ### this is the standard seasonal pathway
     ## making sure dates are mondays!
-    
     epid_start_date <- last_monday(epid_start_date)
-    #end_date <- last_monday(pandemic_date)
     end_date <- last_monday(end_date)
     ## vaccine details, from vacc_type_list
-    
     vacc_details <- vacc_type_list[[vaccine_program$vacc]]
     efficacy_input <- c(rep(vacc_details$VE[1 + 2*(1 - matching)], 3), vacc_details$VE[2 + 2*(1 - matching)])
     vacc_rel_inf <- vacc_details$rel_inf
@@ -62,9 +62,7 @@ one_flu <- function(
     ## including the gamma variables in the calendar
     vacc_gammas <- c(vacc_details$gamma1_variable, vacc_details$gamma2_variable)
   }
-
-  
-  
+  #adding in the waning date
   waning_rate <- vaccine_program$waning
   
 
@@ -280,9 +278,12 @@ many_flu <- function(
   
   ## which vaccine is used in each year/epidemic? 
   imm_dur_vec <- vaccine_used
+  
+  #selecting from the overall list the characteristics (in this case duration of immunity) based on the name of the vaccine selected
   for(i in 1:length(imm_dur_vec)){
     imm_dur_vec[i] <- vacc_type_list[[imm_dur_vec[i]]]$imm_duration
   }
+  
   imm_dur_vec <- as.numeric(imm_dur_vec)
   waning_vec <- 1/(365*imm_dur_vec)
   waning_dt <- data.table(year = year(min(epid_inputs$period_start_date)):(year(min(epid_inputs$period_start_date)) + length(waning_vec) - 1),
@@ -291,12 +292,11 @@ many_flu <- function(
   
   ## loop over number of epidemics in simulation
   
+  #having the pandemic_data as the pandemic dates
   pandemic_data <- epid_inputs[is.na(epid_inputs$original_date)]
-
-
+  #feeding in the pandemic date as the start date of the epidemic 
   pandemic_date <- pandemic_data$epid_start_date
 
-  
   
   output_dt <- data.table()
   for(epidemic_i in 1:nrow(epid_inputs)){ 
@@ -339,23 +339,21 @@ many_flu <- function(
     # print(epidemic_i)
     # print(paste0('AR: ',round(unname(unlist(colSums(flu_epid_output[,2:5])/demography_dt[U==T & week==min(demography_dt$week)]$total_as)),2)))
     
-    ## merge outputs
+    ## merge outputs - we cannot add these together as will not all be included in the analysis
+    ## if combined then you cannot later seperate those that are less than 2 months from when the pandemic was released
+    #Therefore combine information this way
     if(epidemic_i == 1){
-      output_dt <- flu_epid_output
-      test_dt <- flu_epid_output
-      test_dt$time_epidemic <- epid_data$epid_start_date
+      comb_dt <- flu_epid_output
+      comb_dt$time_epidemic <- epid_data$epid_start_date
     }else{
-      output_dt[,2:17] <- output_dt[,2:17] + flu_epid_output[,2:17]
       flu_epid_output_comb <- flu_epid_output
       flu_epid_output_comb$time_epidemic <- epid_data$epid_start_date
-      test_dt <- rbind(test_dt, flu_epid_output_comb)
+      comb_dt <- rbind(comb_dt, flu_epid_output_comb)
     }
     
   }
-  
-  combined_output <- list(output_dt, flu_epid_output, test_dt)
-  return(combined_output)
-  #output_dt ## return epidemics
+  return(comb_dt)
+
   
 }
 

@@ -8,7 +8,7 @@ source(here::here('functions','demography.R'))
 source(here::here('functions','flu_sim.R'))
 
 #function to reduce down the size of the files
-
+#this removes weeks where there are no infections
 reduce_function <- function(dataset){
   dataset$tot <- rowSums(dataset[,2:5])
   dataset <- dataset[dataset$tot != 0, ]
@@ -16,10 +16,10 @@ reduce_function <- function(dataset){
   
 }
 
+###### Functions to use previously produced epidemic analysis ####
 
 
-#Functions to translate Lucy's previous files
-
+## function used in the converting code to check whether matching the circulating strain
 Hemisphere_matching <- function(epi_initial_ds, hemisphere){
   if(hemisphere == 'NH'){
     vec <- epi_initial_ds$N_A_match
@@ -31,33 +31,45 @@ Hemisphere_matching <- function(epi_initial_ds, hemisphere){
   return(vec)
 }
 
-converting_epidemic_code <- function(itz_input,years_of_analysis,simulation_set, ageing_date){
+converting_epidemic_code <- function(itz_input,years_of_analysis,simulation_set, ageing_date, hemisphere){
+  #reading in the epidemics related to the itz_input 
   sampled_epids <- data.table(read_csv(here::here('data','epi','sampled_epids',paste0('sampled_epidemics_30_100_',itz_input,'_wr0.csv')), show_col_types=F))
+  #restricting down to the year of analysis and the simulations interested in
   epids <- sampled_epids[simulation_cal_year <= years_of_analysis & simulation_index %in% simulation_set]
+  #selecting the columns needed
   Converting_epidemics_dataset <- epids %>% select(simulation_index, sus, trans, contains('match'), strain, day, month, year, simulation_cal_year,
                                                    pushback, init_ageing_date, init_nye, r0)
+  #renaming the varibales to tie with the next analysis
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% rename(susceptibility=sus, transmissibility=trans, r0_to_scale=r0)
-  Converting_epidemics_dataset$match <- Hemisphere_matching(Converting_epidemics_dataset, 'NH')
+  #adding in the Hemisphere matching variant 
+  Converting_epidemics_dataset$match <- Hemisphere_matching(Converting_epidemics_dataset, hemisphere)
+  #once the analysis had been done remove the data to work out a match
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% select(!c(strain,contains('_match')))
+  #combining to create the original date and then translating it into the time period studied
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% mutate(start_date_late = as.Date(paste0(as.numeric(day), '-', as.numeric(month), '-', 
                                                                                                            (start_year_of_analysis + simulation_cal_year - 1)), '%d-%m-%Y'),
                                                                           original_date = as.Date(paste0(as.numeric(day), '-', month, '-', year), '%d-%m-%Y') ) 
+  #working out the ageing year with it depending on whether the ageing date of that year has passed yet
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% mutate(ageing_year_start = case_when(month(start_date_late) < ageing_month ~ start_year_of_analysis + simulation_cal_year - 2,
                                                                                                         (month(start_date_late) == ageing_month) & (day(start_date_late) < ageing_day) ~ start_year_of_analysis + simulation_cal_year - 2,
                                                                                                         T ~ start_year_of_analysis + simulation_cal_year - 1))
-  
+  #Getting the epid start time by taking the start date late minus the pushback
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% mutate(epid_start_date = case_when(!is.na(pushback) ~ start_date_late - pushback,
                                                                                                       is.na(pushback) ~ case_when(is.na(init_ageing_date) ~ as.Date(paste0('01-01-', start_year_of_analysis), format = '%d-%m-%Y'),
                                                                                                                                   !is.na(init_ageing_date) ~ as.Date(paste0(ageing_date,  '-', ageing_year_start), format = '%d-%m-%Y'))))
-  
+  #adding in the intiial infected to be 10 unless init_ageing_date is available
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% mutate(initial_infected = case_when(!is.na(pushback) ~ 10,
                                                                                                        is.na(pushback) ~ case_when(is.na(init_ageing_date) ~ init_nye,
                                                                                                                                    !is.na(init_ageing_date) ~ init_ageing_date)),
   )
   
+  #setting the start date to be a Monday
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% mutate(epid_start_date = last_monday(epid_start_date))
+  #removing unneccesary rows
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% select(!c(pushback,init_ageing_date,init_nye,day,month,year,simulation_cal_year))
+  #adding in the period start dates
   Converting_epidemics_dataset <- Converting_epidemics_dataset %>% mutate(period_start_date = as.Date(paste0('01-01-',start_year_of_analysis),format='%d-%m-%Y'), end_date = as.Date(paste0('01-01-',start_year_of_analysis + years_of_analysis),format='%d-%m-%Y'))
+  #adding in susceptibility for children and have it the same as standard susceptibility
   Converting_epidemics_dataset$susceptibility_for_kids <- Converting_epidemics_dataset$susceptibility
   return(Converting_epidemics_dataset)
 }
@@ -339,6 +351,7 @@ flu_parallel_ITZ_epi <- function(vaccine_type){
                              demography_dt
     )
     
+    ##### change it for combined trial to be the 1 and correct the others
     pandemic_only <- mf_output_si[[2]]
     combined_trial <- mf_output_si[[3]]
     

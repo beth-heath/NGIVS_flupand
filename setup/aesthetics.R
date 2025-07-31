@@ -26,6 +26,12 @@ income_colors2 <- c('HIC' = '#FDE725FF', 'UMIC' = '#21908CFF',
 WHO_colors <- c("EMR"="#21908CFF", "WPR" = '#CC4678FF', 
                      "EUR" = '#65156EFF', "SEAR" = '#51C56AFF', "AMR" = '#F89441FF', 
                      "AFR" = '#31688EFF')  
+
+
+WHO_colors_2 <- c('Eastern Mediterrranean Region'="#21908CFF", 'Western Pacific Region' = '#CC4678FF', 
+                'European Region' = '#65156EFF', "South-East Asian Region" = '#51C56AFF', 'Region of the Americas' = '#F89441FF', 
+                'African Region' = '#31688EFF') 
+
 age_targ_colors <- c('1' = '#FDE725FF', '2' = '#5DC863FF', '3' = '#21908CFF', '4' = '#3B528BFF', '5' = '#440154FF')
 
 supp.labs <- c('Current','Improved (minimal)','Improved (efficacy)','Improved (breadth)','Universal')
