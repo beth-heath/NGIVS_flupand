@@ -677,8 +677,9 @@ function_testing <- function(dose_table, epid_time, year_of_interest){
   epid_time <- epid_time %m+% months(6+12*year_of_interest)
   restricting_to_time <- dose_table[week < epid_time]
   restricting_to_time <- restricting_to_time %>% mutate(year = year(week))
-  output_v <- restricting_to_time %>% select(year, vaccs, vacc_type, vacc_population) %>% 
-    group_by(year, vacc_type, vacc_population) %>% summarise(vaccs = max(vaccs))
+  output_v <- restricting_to_time %>% select(year, vaccs, vacc_type, vacc_population, age_grp) %>% 
+    group_by(year, vacc_type, vacc_population, age_grp) %>% summarise(vaccs = max(vaccs))
+  output_v <- output_v %>% group_by(year, vacc_type, vacc_population) %>% summarise(vaccs = sum(vaccs))
   
   return(output_v)
 }
