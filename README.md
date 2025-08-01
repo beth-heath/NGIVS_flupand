@@ -59,6 +59,7 @@ Contains:
 This files contains the function to convert the previous Goodfellow epidemics into a form that the model can use. It also contains the reduction code that is used to reduce down the results to only those that are non-zero.
 
 Sets vaccine programs, then runs `many_flu()` for some epidemic data, parallelised across each vaccine type.
+Note: if adjusting the number of strategies or disease mechanisms then these numbers cannot have a prime factor greater than 1.
 
 ### `analysis_files.R` & `Analysisfiles.R`
 

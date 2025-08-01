@@ -83,19 +83,16 @@ converting_epidemic_code <- function(itz_input,years_of_analysis,simulation_set,
 #### FUNCTION TO RUN ####
 ## only input is vaccine type, to parallelise over vt ##
 flu_parallel_ITZ <- function(vaccine_input){
-  
+  #setting seed here so when parallelising it is the same across the nodes
   set.seed(123)
   
-  # total_start_time <- Sys.time()
+  #### For the pandemics there is 16 possible options with the no vaccination and the different mechanism x the different vaccines
+  ## Note: this code works on moduli - if changing the number of strategy and the vaccine types they must have NO COMMON FACTORS (aside from 1)
   
-  dates_many_flu <- seq.Date(last_monday(min(epid_dt$period_start_date)), 
-                             last_monday(max(epid_dt$end_date)), 
-                             by=7)
   if (vaccine_input < 16){
-    
+    #selecting the mechanism type for the simulation 
     mechanism_type <- vaccine_input %% 3 +1 
     vaccine_strategy_pandemics <- c('sterilising', 'disease mod', 'infection period')[mechanism_type]
-    
     if (vaccine_strategy_pandemics == 'sterilising'){
       vacc_type_list_pand <<- vacc_type_list_sterilising
     } else if (vaccine_strategy_pandemics == 'disease mod'){
@@ -104,22 +101,19 @@ flu_parallel_ITZ <- function(vaccine_input){
       vacc_type_list_pand <<- vacc_type_list_reduced_infec
     }
     
-    
+    #selecting vaccine type for the simulation
     vaccine_type <- vaccine_input %% 5 +1 
+    #we do not want to have no simulation combined with the mechanism type
     removing_zero <- c("A.1", "A.2", "B.1", "B.2", "C")
     vacc_name <- removing_zero[vaccine_type]
+    #adding 1 to the vaccine type to make up for not considering 0. 
     vaccine_type <- vaccine_type + 1
   } else {
+    #selecting to get the '0' vaccine type
     vaccine_type <- 1
     vacc_name <- names(vacc_type_list)[1]
-    vaccine_strategy_pandemics <- c('sterilising', 'disease mod', 'infection period')[1]
-    if (vaccine_strategy_pandemics == 'sterilising'){
-      vacc_type_list_pand <<- vacc_type_list_sterilising
-    } else if (vaccine_strategy_pandemics == 'disease mod'){
-      vacc_type_list_pand <<- vacc_type_list_dis_mod
-    } else if (vaccine_strategy_pandemics == 'infection period'){
-      vacc_type_list_pand <<- vacc_type_list_reduced_infec
-    }
+    #selecting the vacc_type_list to be sterilising - it does not matter as it has no impact anyway. 
+    vacc_type_list_pand <<- vacc_type_list_sterilising
   }
   
   
@@ -130,8 +124,12 @@ flu_parallel_ITZ <- function(vaccine_input){
     # if using coverage, assuming NGIVs available each year (adjust here if not!)
     rep(vacc_name, (year(epid_dt$end_date[1]) - year(epid_dt$period_start_date[1])))
   }
-  #only works for pandemics - only run for first 6 for epidemics 
+
   
+  #setting up the dates to go into the equations
+  dates_many_flu <- seq.Date(last_monday(min(epid_dt$period_start_date)), 
+                             last_monday(max(epid_dt$end_date)), 
+                             by=7)
   
   
   ## vaccination and ageing
@@ -154,11 +152,8 @@ flu_parallel_ITZ <- function(vaccine_input){
     print(paste0('Negative values in demography_dt, iso3c = ', iso3c_input,', vaccine type = ', vaccine_type))
   }
   
-  mf_output <- data.table()
-  pan_output <- data.table()
   combined_output <- data.table()
-  combined_output2 <- data.table()
-  combined_output3 <- data.table()
+
   
   
   # loop over 1:100 simulations
@@ -167,7 +162,7 @@ flu_parallel_ITZ <- function(vaccine_input){
     start_time <- Sys.time()
     
     # run flu simulations
-    mf_output_si <- many_flu(country = iso3c_input,
+    combined_trial <- many_flu(country = iso3c_input,
                              ageing, 
                              ageing_date,
                              epid_inputs = epid_dt[epid_dt$simulation_index == sim_index, ],  
@@ -179,22 +174,6 @@ flu_parallel_ITZ <- function(vaccine_input){
                              demography_dt
     )
     
-    pandemic_only <- mf_output_si[[2]]
-    combined_trial <- mf_output_si[[3]]
-    
-
-    
-    
-    
-    pandemic_only <- pandemic_only[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 
-    pandemic_only[, vacc_type := vacc_name] # add vaccine name
-    pandemic_only[, simulation_index := sim_index] # add simulation number
-    
-    
-    # printing if there is an NA error (shouldn't happen)
-    if(is.na(sum(rowSums(pandemic_only %>% select(starts_with('I')))))){
-      print(paste0('vt = ', vaccine_type, ', sim_index = ', sim_index, ' - is.na'))
-    }
   
     
     combined_trial <- combined_trial[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 
@@ -207,47 +186,7 @@ flu_parallel_ITZ <- function(vaccine_input){
       print(paste0('vt = ', vaccine_type, ', sim_index = ', sim_index, ' - is.na'))
     }
     
-    
-    mf_output_si <- mf_output_si[[1]]
-    
-    
-    mf_output_si <- mf_output_si[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 
-    mf_output_si[, vacc_type := names(vacc_type_list)[vaccine_type]] # add vaccine name
-    mf_output_si[, simulation_index := sim_index] # add simulation number
-    
-
-    # printing if there is an NA error (shouldn't happen)
-    if(is.na(sum(rowSums(mf_output_si %>% select(starts_with('I')))))){
-      print(paste0('vt = ', vaccine_type, ', sim_index = ', sim_index, ' - is.na'))
-    }
-    
-    # merge output 
-    if(nrow(mf_output)==0){
-      mf_output <- mf_output_si
-    }else{
-      mf_output <- rbind(mf_output, mf_output_si)
-    }
-    
-    if(nrow(pan_output)==0){
-      pan_output <- pandemic_only
-    }else{
-      pan_output <- rbind(pan_output, pandemic_only)
-    }
-    
-    #if(nrow(combined_output)==0 & sim_index <= 33){
-    #  combined_output <- combined_trial
-    #}else if (sim_index <= 33 & nrow(combined_output)>0 ){
-    #  combined_output <- rbind(combined_output, combined_trial)
-    #} else if (nrow(combined_output2)==0 & sim_index > 33 & sim_index <= 66){
-    #  combined_output2 <- combined_trial
-    #} else if (sim_index > 33 & sim_index <= 66 & nrow(combined_output)>0){
-    #  combined_output2 <- rbind(combined_output2, combined_trial)
-    #}else if (nrow(combined_output2)==0 & sim_index > 66){
-    #  combined_output3 <- combined_trial
-    #} else if (sim_index > 66  & nrow(combined_output)>0){
-    #  combined_output3 <- rbind(combined_output3, combined_trial)
-    #}
-    
+    #merging outputs
     if(nrow(combined_output)==0 ){
       combined_output <- combined_trial
     }else if (nrow(combined_output)>0 ){
@@ -270,15 +209,8 @@ flu_parallel_ITZ <- function(vaccine_input){
     
   }
   
-  #trial <- list(mf_output, pan_output, combined_output, combined_output2, combined_output3)
+  return(combined_output)
   
-  #trial <- list(mf_output, pan_output, combined_output)
-  
-  trial <- combined_output
-  
-  return(trial)
-  
-  #mf_output
 }
 
 
@@ -325,21 +257,17 @@ flu_parallel_ITZ_epi <- function(vaccine_type){
   if(min(demography_dt$value) < 0){ # quick fix if any vaccination issues (there shouldn't be)
     print(paste0('Negative values in demography_dt, iso3c = ', iso3c_input,', vaccine type = ', vaccine_type))
   }
-  
-  mf_output <- data.table()
-  pan_output <- data.table()
+
   combined_output <- data.table()
-  combined_output2 <- data.table()
-  combined_output3 <- data.table()
+
   
   
-  # loop over 1:100 simulations
-  #for(sim_index in unique(epid_dt$simulation_index)){
+  # loop over the desired simulations 
   for(sim_index in unique(simulation_nos_input )){
     start_time <- Sys.time()
     
     # run flu simulations
-    mf_output_si <- many_flu(country = iso3c_input,
+    combined_trial <- many_flu(country = iso3c_input,
                              ageing, 
                              ageing_date,
                              epid_inputs = epid_dt[epid_dt$simulation_index == sim_index, ],  
@@ -351,25 +279,6 @@ flu_parallel_ITZ_epi <- function(vaccine_type){
                              demography_dt
     )
     
-    ##### change it for combined trial to be the 1 and correct the others
-    pandemic_only <- mf_output_si[[2]]
-    combined_trial <- mf_output_si[[3]]
-    
-    
-    
-    
-    
-    pandemic_only <- pandemic_only[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 
-    pandemic_only[, vacc_type := vacc_name] # add vaccine name
-    pandemic_only[, simulation_index := sim_index] # add simulation number
-    
-    
-    # printing if there is an NA error (shouldn't happen)
-    if(is.na(sum(rowSums(pandemic_only %>% select(starts_with('I')))))){
-      print(paste0('vt = ', vaccine_type, ', sim_index = ', sim_index, ' - is.na'))
-    }
-    
-    
     combined_trial <- combined_trial[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 
     combined_trial[, vacc_type := names(vacc_type_list)[vaccine_type]] # add vaccine name
     combined_trial[, simulation_index := sim_index] # add simulation number
@@ -379,47 +288,6 @@ flu_parallel_ITZ_epi <- function(vaccine_type){
     if(is.na(sum(rowSums(combined_trial %>% select(starts_with('I')))))){
       print(paste0('vt = ', vaccine_type, ', sim_index = ', sim_index, ' - is.na'))
     }
-    
-    
-    mf_output_si <- mf_output_si[[1]]
-    
-    
-    mf_output_si <- mf_output_si[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 
-    mf_output_si[, vacc_type := names(vacc_type_list)[vaccine_type]] # add vaccine name
-    mf_output_si[, simulation_index := sim_index] # add simulation number
-    
-    
-    # printing if there is an NA error (shouldn't happen)
-    if(is.na(sum(rowSums(mf_output_si %>% select(starts_with('I')))))){
-      print(paste0('vt = ', vaccine_type, ', sim_index = ', sim_index, ' - is.na'))
-    }
-    
-    # merge output 
-    if(nrow(mf_output)==0){
-      mf_output <- mf_output_si
-    }else{
-      mf_output <- rbind(mf_output, mf_output_si)
-    }
-    
-    if(nrow(pan_output)==0){
-      pan_output <- pandemic_only
-    }else{
-      pan_output <- rbind(pan_output, pandemic_only)
-    }
-    
-    #if(nrow(combined_output)==0 & sim_index <= 33){
-    #  combined_output <- combined_trial
-    #}else if (sim_index <= 33 & nrow(combined_output)>0 ){
-    #  combined_output <- rbind(combined_output, combined_trial)
-    #} else if (nrow(combined_output2)==0 & sim_index > 33 & sim_index <= 66){
-    #  combined_output2 <- combined_trial
-    #} else if (sim_index > 33 & sim_index <= 66 & nrow(combined_output)>0){
-    #  combined_output2 <- rbind(combined_output2, combined_trial)
-    #}else if (nrow(combined_output2)==0 & sim_index > 66){
-    #  combined_output3 <- combined_trial
-    #} else if (sim_index > 66  & nrow(combined_output)>0){
-    #  combined_output3 <- rbind(combined_output3, combined_trial)
-    #}
     
     if(nrow(combined_output)==0 ){
       combined_output <- combined_trial
@@ -443,13 +311,7 @@ flu_parallel_ITZ_epi <- function(vaccine_type){
     
   }
   
-  #trial <- list(mf_output, pan_output, combined_output, combined_output2, combined_output3)
-  
-  #trial <- list(mf_output, pan_output, combined_output)
-  
-  trial <- combined_output
-  
-  return(trial)
+  return(combined_output)
   
   #mf_output
 }

@@ -1,8 +1,11 @@
 #### Reading in parameters ####
+#adding in the coverage values that are between 20 and 70
+coverage_value <- 2
+coverage_tables <- c(20, 50, 70)[coverage_value]
 
 pandemic <- pandemic_example[pandemic_example$simulation_index==1,]
 vaccine_variable <- c('doses','coverage')[2] # using MMGH doses or % coverage?
-cov_val <- 0.5
+cov_val <- coverage_tables/100
 key_dates <- c('01-04', '01-10')
 country_codes <- country_itzs_names$codes
 ### Adding in flu dose calculator ####
@@ -645,8 +648,6 @@ for (country_no in 1:length(country_codes)){
   ageing_date =  ifelse(continent_interest=="Oceania-Melanesia-Polynesia"|continent_interest=="Southern America", key_dates[2], key_dates[1])
   vacc_calendar_start <- ifelse(continent_interest=="Oceania-Melanesia-Polynesia"|continent_interest=="Southern America", key_dates[1], key_dates[2])
   
-  #first_doses <- mclapply(1:10, flu_doses_parallal_1, mc.cores=1)
-  
   first_doses <- mclapply(1:10, flu_doses_parallal_1, mc.cores=10)
   second_doses <- mclapply(1:10, flu_doses_parallal_2, mc.cores=10)
   third_doses <- mclapply(1:10, flu_doses_parallal_3, mc.cores=10)
@@ -665,9 +666,9 @@ for (country_no in 1:length(country_codes)){
 }
 
 
-saveRDS(doses_table, file = here::here(paste0('dose_table.rds')))
+saveRDS(doses_table, file = here::here(paste0('dose_table',coverage_vector ,'.rds')))
 
-doses_table<- readRDS('dose_table.rds')
+doses_table<- readRDS(here::here('data','dose_table.rds'))
 
 #### adding in code to analyse the files
 

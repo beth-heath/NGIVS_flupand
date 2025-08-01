@@ -99,6 +99,6 @@ save(pandemic_example, file='1957_combined_set_SH.Rdata')
 
 pandemic_example<- Pandemic_addition_function(100, c(0.30, 0.5), c(0.06772161, 0.08324118), c(0.8,0.95), NA,
                                              30, '01-10', creating_dates)
-save(pandemic_example, file='2009_combined_set_NH.Rdata')
+save(pandemic_example, file='2009_combined_set_SH.Rdata')
 
 
