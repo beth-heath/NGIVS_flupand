@@ -1018,6 +1018,7 @@ fcn_annual_doses <- function(country,
             gamma = vaccine_calendar0$gamma
           )
         }else{
+
           dfn_vaccine_calendar_cov(
             vacc_cov = vacc_cov_vec,
             existing_cov = fcn_vri(pop2),
@@ -1124,7 +1125,6 @@ fcn_annual_doses <- function(country,
         gamma = vaccine_calendar0$gamma
       )
     }
-    
     input2 <- fcn_vaccinated_demography_doses(
       demography_input = fcn_yr_res_pop(pop2),
       calendar_input = calendar_input,

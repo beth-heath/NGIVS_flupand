@@ -668,7 +668,7 @@ for (country_no in 1:length(country_codes)){
 
 saveRDS(doses_table, file = here::here(paste0('dose_table',coverage_vector ,'.rds')))
 
-doses_table<- readRDS(here::here('data','dose_table.rds'))
+doses_table<- readRDS(here::here('data',paste0('dose_table',coverage_vector ,'.rds')))
 
 #### adding in code to analyse the files
 
@@ -678,9 +678,8 @@ function_testing <- function(dose_table, epid_time, year_of_interest){
   restricting_to_time <- dose_table[week < epid_time]
   restricting_to_time <- restricting_to_time %>% mutate(year = year(week))
   output_v <- restricting_to_time %>% select(year, vaccs, vacc_type, vacc_population, age_grp) %>% 
-    group_by(year, vacc_type, vacc_population, age_grp) %>% summarise(vaccs = max(vaccs))
+  group_by(year, vacc_type, vacc_population, age_grp) %>% summarise(vaccs = max(vaccs))
   output_v <- output_v %>% group_by(year, vacc_type, vacc_population) %>% summarise(vaccs = sum(vaccs))
-  
   return(output_v)
 }
 
@@ -689,7 +688,7 @@ function_testing <- function(dose_table, epid_time, year_of_interest){
 reworked_doses <- purrr::map_dfr(country_codes, function(country_code) {
   param_grid_country <- expand.grid(
     simulation_index = 1:100,
-    year_pandemic = 1:30,
+    year_pandemic = 0:27,
     stringsAsFactors = FALSE
   ) %>%
     mutate(country = country_code)
