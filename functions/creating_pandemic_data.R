@@ -45,7 +45,7 @@ Pandemic_addition_function <- function(simulations, susceptibility_range, trans_
   #Adding in the set start date 
   period_start_date <- rep(as.Date(paste0('01-01-2025'),format='%d-%m-%Y'), simulations)
   #adding in the same end date for each of them
-  end_date <- rep(as.Date(paste0('01-01-',start_year_of_analysis + length_analysis),format='%d-%m-%Y'), simulations)
+  end_date <- rep(as.Date(paste0('01-01-2055'),format='%d-%m-%Y'), simulations)
   #combining together the dataset
   combined_table <- data.frame(simulation_index, susceptibility, susceptibility_for_kids, transmissibility, r0_to_scale, 
                                match, start_date_late,original_date, ageing_year_start,

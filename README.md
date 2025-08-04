@@ -78,9 +78,10 @@ Taken from Goodfellow et al. Produces the contact matrices.
 This function should be run before the running of other code and does not require a HPC.
 This sets the pandemic runs for the model. Although, the values of these pandemics can be changed, this runs without need for input from the user.
 
-### `functions/dose_calculator_function.R.R` & `functions/doses_function.R.R`
+### `functions/doses_function.R.R`
 
-[TBD]
+Function to get the doses for each country, year of pandemic and simulation index. It requires input from the command line for the vaccine coverage - 1 for 20%, 2 for 50% and 3 for 70%. 
+This saves both the overall doses dose_table_coverage and the country dose by country. This dose by country is the one used in later code. 
 
 ### `functions/Economiceexample.R`
 

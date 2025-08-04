@@ -1,6 +1,14 @@
+##### Loading in needed packages #####
+
+library(here)
+source(here::here('setup','packages.R'))
+
 #### Reading in parameters ####
+args <- commandArgs(trailingOnly = TRUE)
+coverage_value <- as.numeric(args[1])
+
 #adding in the coverage values that are between 20 and 70
-coverage_value <- 2
+
 coverage_tables <- c(20, 50, 70)[coverage_value]
 
 pandemic <- pandemic_example[pandemic_example$simulation_index==1,]
@@ -666,9 +674,9 @@ for (country_no in 1:length(country_codes)){
 }
 
 
-saveRDS(doses_table, file = here::here(paste0('dose_table',coverage_vector ,'.rds')))
+saveRDS(doses_table, file = here::here(paste0('dose_table',coverage_tables ,'.rds')))
 
-doses_table<- readRDS(here::here('data',paste0('dose_table',coverage_vector ,'.rds')))
+doses_table<- readRDS(here::here('data',paste0('dose_table',coverage_tables ,'.rds')))
 
 #### adding in code to analyse the files
 
@@ -685,42 +693,42 @@ function_testing <- function(dose_table, epid_time, year_of_interest){
 
 
 
-reworked_doses <- purrr::map_dfr(country_codes, function(country_code) {
-  param_grid_country <- expand.grid(
-    simulation_index = 1:100,
-    year_pandemic = 0:27,
-    stringsAsFactors = FALSE
-  ) %>%
-    mutate(country = country_code)
+#reworked_doses <- purrr::map_dfr(country_codes, function(country_code) {
+#  param_grid_country <- expand.grid(
+#    simulation_index = 1:100,
+#    year_pandemic = 0:27,
+#    stringsAsFactors = FALSE
+#  ) %>%
+#    mutate(country = country_code)
   
-  dose_table_sub <- doses_table %>% filter(country == country_code)
-  print(country_code)
+#  dose_table_sub <- doses_table %>% filter(country == country_code)
+#  print(country_code)
   
   # Add epidemic time for each simulation index
-  param_grid_country <- param_grid_country %>%
-    mutate(
+#  param_grid_country <- param_grid_country %>%
+#    mutate(
       #adding in simulation index into the map index
-      epid_time = map(simulation_index, ~ {
-        pandemic_example %>%
+#      epid_time = map(simulation_index, ~ {
+#        pandemic_example %>%
           #filtering for the simulation index put in
-          filter(simulation_index == .x) %>%
+#          filter(simulation_index == .x) %>%
           #taking the epid_start_date from function
-          pull(epid_start_date)
-      })
-    )
+#          pull(epid_start_date)
+#      })
+#    )
   
   # Apply function_testing to the fed in parameters
-  param_grid_country %>%
-    mutate(
-      doses_tab = pmap(list(simulation_index, epid_time, year_pandemic), function(i, ep, yp) {
-        function_testing(dose_table_sub, ep, yp)
-      })
-    ) %>%
-    select(country, simulation_index, year_pandemic, doses_tab) %>%
-    unnest(doses_tab)
-})
+#  param_grid_country %>%
+#    mutate(
+#      doses_tab = pmap(list(simulation_index, epid_time, year_pandemic), function(i, ep, yp) {
+#        function_testing(dose_table_sub, ep, yp)
+#      })
+#    ) %>%
+#    select(country, simulation_index, year_pandemic, doses_tab) %>%
+#    unnest(doses_tab)
+#})
 
-saveRDS(reworked_doses, file = here::here(paste0('dose_table_reworked.rds')))
+#saveRDS(reworked_doses, file = here::here(paste0('dose_table_reworked.rds')))
 
 
 ### repeating by country ####
@@ -728,7 +736,7 @@ saveRDS(reworked_doses, file = here::here(paste0('dose_table_reworked.rds')))
 for (country_code in country_codes){
   param_grid_country <- expand.grid(
     simulation_index = 1:100,
-    year_pandemic = 1:30,
+    year_pandemic = 0:27,
     stringsAsFactors = FALSE
   ) %>%
     mutate(country = country_code)
@@ -759,7 +767,7 @@ for (country_code in country_codes){
     select(country, simulation_index, year_pandemic, doses_tab) %>%
     unnest(doses_tab)
   
-  saveRDS(doses_analysed, file = here::here(paste0('Rearranged_dose_for',country,'.rds')))
+  saveRDS(doses_analysed, file = here::here(paste0('Rearranged_dose_for',country,coverage_tables,'.rds')))
   
 }
 
