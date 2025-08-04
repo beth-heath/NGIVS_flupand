@@ -767,10 +767,9 @@ for (country_code in country_codes){
     select(country, simulation_index, year_pandemic, doses_tab) %>%
     unnest(doses_tab)
   
-  saveRDS(doses_analysed, file = here::here(paste0('Rearranged_dose_for',country,coverage_tables,'.rds')))
+  saveRDS(doses_analysed, file = here::here('data', 'Rearranged_doses',paste0('Rearranged_dose_for',country,coverage_tables,'.rds')))
   
 }
-
 
 
 
