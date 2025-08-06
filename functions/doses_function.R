@@ -10,7 +10,9 @@ coverage_value <- as.numeric(args[1])
 #adding in the coverage values that are between 20 and 70
 
 coverage_tables <- c(20, 50, 70)[coverage_value]
-
+#loading in pandemix example
+load("1918_combined_set_NH.Rdata")
+pandemic_example <- pandemic_combined
 pandemic <- pandemic_example[pandemic_example$simulation_index==1,]
 vaccine_variable <- c('doses','coverage')[2] # using MMGH doses or % coverage?
 cov_val <- coverage_tables/100
