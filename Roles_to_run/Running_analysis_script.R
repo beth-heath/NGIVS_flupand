@@ -5,7 +5,7 @@ args <- commandArgs(trailingOnly = TRUE)
 ITZregion <- as.numeric(args[1])
 LMIC_boost <- as.numeric(args[2])
 DALY_discount <- as.numeric(args[3])
-Coverage_chosen <- as.numeric(args[4])
+coverage_scenario <- as.numeric(args[4])
 
 
 LMIC_boost <- c(1,3)[LMIC_boost]

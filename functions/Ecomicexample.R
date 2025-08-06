@@ -730,11 +730,11 @@ Pandemic_impact<- function(ITZregion, country_of_interest, age_testing_strategy,
          national_ifrs, yll_df, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
          cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
          cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
-         doses_info, wastage, dose_price, case_proportion, LMICS_country, LMIC_boost){
+         doses_info, wastage, dose_price, case_proportion, LMICS_country, LMIC_boost, coverage_scenario){
   
-  pandemic_dataset <- pandemic_datasets(ITZregion, country_of_interest, age_testing_strategy, year_of_interest, years)
-  seasonal_dataset_pan <- epidemic_datasets_combine(ITZregion, country_of_interest, age_testing_strategy, pand_dt[pand_dt$year_pandemic == years, ], FALSE)
-  seasonal_dataset_only <- epidemic_datasets_combine(ITZregion, country_of_interest, age_testing_strategy, pand_dt[pand_dt$year_pandemic == years, ], TRUE)
+  pandemic_dataset <- pandemic_datasets(ITZregion, country_of_interest, age_testing_strategy, year_of_interest, years, coverage_scenario)
+  seasonal_dataset_pan <- epidemic_datasets_combine(ITZregion, country_of_interest, age_testing_strategy, pand_dt[pand_dt$year_pandemic == years, ], FALSE, coverage_scenario)
+  seasonal_dataset_only <- epidemic_datasets_combine(ITZregion, country_of_interest, age_testing_strategy, pand_dt[pand_dt$year_pandemic == years, ], TRUE, coverage_scenario)
   
   pandemic_plus <- Overall_economic_analysis(seasonal_dataset_pan, pandemic_dataset, symp_samples, global_ihrs,
                                              country_of_interest,

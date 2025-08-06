@@ -87,6 +87,8 @@ This saves both the overall doses dose_table_coverage and the country dose by co
 
 [TBD]
 
+### `functions/Pandemic_Scenarios_diagram.R`
 
+This is the code to create the figures contained in the paper. 
 
 
