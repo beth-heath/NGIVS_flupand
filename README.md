@@ -8,14 +8,14 @@ Built from work from <https://github.com/lucy-gf/flu_model_LG>
 The project consists of five folders: data to include the data to run the code, functions including the functions contained in the code, setup which includes the files to download
 packages, Roles_to_run which included the scripts to run to produce the outputs for the analysis and Run_scripts which is the output from Run scripts.
 
-### `Roles_to_run\Overall_script_epidemics.R`
+### `Roles_to_run/Overall_script_epidemics.R`
 
 This code will run the epidemics portion of the model. 
 It requires the contintent (ITZ) and the coverage to be included to run the code (20, 50, 70). 
 This code will save the corresponding ITZ and coverage levels in the Run_script folder. 
 This only contains data from weeks where the number of infections is non-zero. 
 
-### `Roles_to_run\Overall_script_pandemics.R`
+### `Roles_to_run/Overall_script_pandemics.R`
 
 This code will run the pandemic portion of the model. 
 It requires the continent (ITZ), pandemic scenario (either 1918, 1957 or 2009) and the coverage to be included to run the code (20, 50, 70).
@@ -23,13 +23,13 @@ This code will save the corresponding ITZ and coverage levels in the Run_script 
 This only contains data from weeks where the number of infections is non-zero. 
 
 
-### `Running_analysis_script.R`
+### `functions/Running_analysis_script.R`
 
 This code runs the analysis of the epidemics and pandemics code. 
 It requires the input of four parameters: ITZ region, LMIC_boost (1 for no booking and 2 for three times multipler in LMICs), DALY_discount (0 for 3% discount on DALYs and 1 for 0% discount on DALYs) and then coverage (20, 50, 70).
 The code will save code to the corresponding Overall files by coverage. 
 
-### `vacc_types.R`
+### `functions/vacc_types.R`
 
 Contains functions to define vaccine programs for no vaccinations and 5 NGIVs (can be edited).
 
@@ -54,14 +54,14 @@ Contains:
 - `dfn_vaccine_calendar()`, which converts the vaccine program and epidemic dates into a vaccine calendar 
 - `flu_doses()`, which calculates how many vaccines were given (before wastage) in the same epidemics as `many_flu()`
 
-### `fluparallelalteredITZ.R`
+### `functions/fluparallelalteredITZ.R`
 
 This files contains the function to convert the previous Goodfellow epidemics into a form that the model can use. It also contains the reduction code that is used to reduce down the results to only those that are non-zero.
 
 Sets vaccine programs, then runs `many_flu()` for some epidemic data, parallelised across each vaccine type.
 Note: if adjusting the number of strategies or disease mechanisms then these numbers cannot have a prime factor greater than 1.
 
-### `Analysisfile.R`
+### `functions/Analysisfile.R`
 
 [TBD]
 
