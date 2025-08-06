@@ -61,9 +61,11 @@ This files contains the function to convert the previous Goodfellow epidemics in
 Sets vaccine programs, then runs `many_flu()` for some epidemic data, parallelised across each vaccine type.
 Note: if adjusting the number of strategies or disease mechanisms then these numbers cannot have a prime factor greater than 1.
 
-### `analysis_files.R` & `Analysisfiles.R`
+### `Analysisfile.R`
 
 [TBD]
+
+This contains the files to read in the data and analysise the files that feeds into the Pandemic_impact function in Economice example that is used in the Running_analysis_script.R
 
 ### `functions/contact_matr_fcns.R`
 
@@ -72,6 +74,8 @@ Taken from Goodfellow et al. Produces the contact matrices.
 ### `functions/Convergence_tests.R`
 
 [TBD]
+
+Runs the convergence tests used in the paper. 
 
 ### `functions/creating_pandemic_data.R`
 
@@ -86,6 +90,8 @@ This saves both the overall doses dose_table_coverage and the country dose by co
 ### `functions/Economiceexample.R`
 
 [TBD]
+
+Contains the economic analysis used in the paper.
 
 ### `functions/Pandemic_Scenarios_diagram.R`
 
