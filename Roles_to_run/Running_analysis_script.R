@@ -35,7 +35,7 @@ source(here::here('functions/fluparallelalteredITZ.R'))
 
 #loading in example of the pandemic data to extract when the pandemics occur 
 load("1918_combined_set_NH.Rdata")
-pand_dt <- pandemic_combined
+pand_dt <- pandemic_example
 
 
 c_name <- c("Africa", "Asia-Europe", "Eastern and Southern Asia",

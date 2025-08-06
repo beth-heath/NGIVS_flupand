@@ -12,12 +12,24 @@ coverage_value <- as.numeric(args[1])
 coverage_tables <- c(20, 50, 70)[coverage_value]
 #loading in pandemix example
 load("1918_combined_set_NH.Rdata")
-pandemic_example <- pandemic_combined
+pandemic_example <- pandemic_example
 pandemic <- pandemic_example[pandemic_example$simulation_index==1,]
 vaccine_variable <- c('doses','coverage')[2] # using MMGH doses or % coverage?
 cov_val <- coverage_tables/100
 key_dates <- c('01-04', '01-10')
+model_age_groups <- c(0,5,18,65) #where the age cutoffs are
+age_group_names <- paste0(model_age_groups,"-", c(model_age_groups[2:length(model_age_groups)],99)) #names of the age-groups
+source(here::here('functions/fluparallelalteredITZ.R'))
 country_codes <- country_itzs_names$codes
+
+start_year_of_analysis <- 2025 #the age the analysis starts
+years_of_analysis <- 30 #studying for 30 years in keeping in Goodfellow et al paper
+simulations <-100 #the number of simulations
+ageing <- T # are the populations being aged in the simulations?
+key_dates <- c('01-04', '01-10') # vaccination and ageing dates (hemisphere-dependent)
+vacc_calendar_weeks <- 12 # number of weeks in vaccination program
+vacc_type_list <- vacc_type_list_sterilising
+
 ### Adding in flu dose calculator ####
 
 flu_dose_calculator <- function(
@@ -654,7 +666,7 @@ for (country_no in 1:length(country_codes)){
   country = country_codes[country_no]
   
   continent_interest <- country_itzs_names[country_no]$cluster_name
-  
+  ageing <- T
   ageing_date =  ifelse(continent_interest=="Oceania-Melanesia-Polynesia"|continent_interest=="Southern America", key_dates[2], key_dates[1])
   vacc_calendar_start <- ifelse(continent_interest=="Oceania-Melanesia-Polynesia"|continent_interest=="Southern America", key_dates[1], key_dates[2])
   

@@ -119,7 +119,7 @@ for (age_groups in 1:5){
     #running for the first fifth of simulations
     simulation_nos_input <- 1:560
     # selecting the pandemic data for these
-    epid_dt <- pandemic_combined %>% subset(simulation_index <561)
+    epid_dt <- pandemic_example %>% subset(simulation_index <561)
     #running the code for these
     infs_rds_list <- mclapply(1:16, flu_parallel_ITZ, mc.cores=16,mc.preschedule = FALSE)
     #reducing down into an arrow table
@@ -136,7 +136,7 @@ for (age_groups in 1:5){
     
     #running for the second fifth of simulations
     simulation_nos_input <- 561:1120
-    epid_dt <- pandemic_combined %>% subset(simulation_index <1121 & simulation_index >560)
+    epid_dt <- pandemic_example %>% subset(simulation_index <1121 & simulation_index >560)
     infs_rds_list <- mclapply(1:16, flu_parallel_ITZ, mc.cores=16,mc.preschedule = FALSE)
     overall_dt2 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
@@ -147,7 +147,7 @@ for (age_groups in 1:5){
     
     #running for the third fifth of simulations
     simulation_nos_input <- 1121:1680
-    epid_dt <- pandemic_combined %>% subset(simulation_index <1681 & simulation_index >1120)
+    epid_dt <- pandemic_example %>% subset(simulation_index <1681 & simulation_index >1120)
     infs_rds_list <- mclapply(1:16, flu_parallel_ITZ, mc.cores=16,mc.preschedule = FALSE)
     overall_dt3 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
@@ -158,7 +158,7 @@ for (age_groups in 1:5){
     
     #running for the fourth fifth of simulations
     simulation_nos_input <- 1681:2240
-    epid_dt <- pandemic_combined %>% subset(simulation_index <2241 & simulation_index >1680)
+    epid_dt <- pandemic_example %>% subset(simulation_index <2241 & simulation_index >1680)
     infs_rds_list <- mclapply(1:16, flu_parallel_ITZ, mc.cores=16,mc.preschedule = FALSE)
     overall_dt4 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
@@ -169,7 +169,7 @@ for (age_groups in 1:5){
     
     #running for the final fifth of simulations
     simulation_nos_input <- 2241:2800
-    epid_dt <- pandemic_combined %>% subset(simulation_index >2240)
+    epid_dt <- pandemic_example %>% subset(simulation_index >2240)
     infs_rds_list <- mclapply(1:16, flu_parallel_ITZ, mc.cores=16,mc.preschedule = FALSE)
     overall_dt5 <- rbindlist(infs_rds_list) %>% reduce_function() %>% arrow_table()
     rm(infs_rds_list)
