@@ -1,5 +1,7 @@
 #### File to run the code for ITZ region  
 
+setwd('NGIVS_flupand')
+
 #loading in region
 args <- commandArgs(trailingOnly = TRUE)
 ITZregion <- as.numeric(args[1])

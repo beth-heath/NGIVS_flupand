@@ -1,5 +1,7 @@
 ##### Loading in needed packages #####
 
+setwd('NGIVS_flupand')
+
 library(here)
 source(here::here('setup','packages.R'))
 
@@ -688,7 +690,7 @@ for (country_no in 1:length(country_codes)){
 }
 
 
-saveRDS(doses_table, file = here::here(paste0('dose_table',coverage_tables ,'.rds')))
+saveRDS(doses_table, file = here::here('data',paste0('dose_table',coverage_tables ,'.rds')))
 
 doses_table<- readRDS(here::here('data',paste0('dose_table',coverage_tables ,'.rds')))
 

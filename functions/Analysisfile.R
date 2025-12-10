@@ -15,8 +15,6 @@ pandemic_datasets <- function(ITZ, country, age_groups, year_of_interest, pandem
     year_of_interest = 3
   }
   
-  
-  
   if (pandemic_year <= 5){
     pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_1.parquet')), compression = "zstd")
     selected_year <- pandemic_dataset[pandemic_dataset$simulation_index > (pandemic_year-1)*100 & pandemic_dataset$simulation_index < (100*pandemic_year)+1]
@@ -225,7 +223,7 @@ Analysis_file <- function(situation){
                                     national_ifrs, yll_df, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
                                     cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
                                     cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
-                                    doses_info, wastage, dose_price, case_proportion, LMICS_country, LMIC_boost)
+                                    doses_info, wastage, dose_price, case_proportion, LMICS_country, LMIC_boost, coverage_scenario)
   
   
   

@@ -12,9 +12,9 @@ LOCAL_DEST_DIR=$1
 REMOTE_DIR=$2
 
 # CONFIGURATION
-INTERMEDIARY_USER="lshbh6"
+INTERMEDIARY_USER="lshlg12"
 INTERMEDIARY_HOST="pryor.lshtm.ac.uk"
-HPC_USER="lshbh6"
+HPC_USER="lshlg12"
 HPC_HOST="loginhpc.lshtm.ac.uk"
 INTERMEDIARY_TMP_DIR="/tmp/hpc_transfer_tmp"
 

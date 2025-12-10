@@ -91,7 +91,7 @@ flu_parallel_ITZ <- function(vaccine_input){
   
   if (vaccine_input < 16){
     #selecting the mechanism type for the simulation 
-    mechanism_type <- vaccine_input %% 3 +1 
+    mechanism_type <- vaccine_input %% 3 + 1 
     vaccine_strategy_pandemics <- c('sterilising', 'disease mod', 'infection period')[mechanism_type]
     if (vaccine_strategy_pandemics == 'sterilising'){
       vacc_type_list_pand <<- vacc_type_list_sterilising
@@ -114,6 +114,7 @@ flu_parallel_ITZ <- function(vaccine_input){
     vacc_name <- names(vacc_type_list)[1]
     #selecting the vacc_type_list to be sterilising - it does not matter as it has no impact anyway. 
     vacc_type_list_pand <<- vacc_type_list_sterilising
+    vaccine_strategy_pandemics <- 'sterilising'
   }
   
   
