@@ -18,7 +18,7 @@ cov <- c(50, 20, 70, 50, 50, 50, 50)[SA]
 lmic_num <- c(1, 1, 1, 3, 1, 1, 1)[SA]
 discount_num <- c(1, 1, 1, 1, 2, 1, 1)[SA]
 
-read <- c(T,T,T,T,T,T,T)[SA]
+read <- rep(T, 7)[SA] #rep(F, 7)[SA]
 
 SA_FOLDER <- paste0('cov_', cov, '_lmic_', lmic_num, '_discount_', discount_num)
 SA_FILEPATH <- file.path('Graphs_included', SA_FOLDER)

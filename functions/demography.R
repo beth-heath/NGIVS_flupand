@@ -1143,14 +1143,19 @@ fcn_annual_doses <- function(country,
   
   output_v <- output %>% select(country, week, starts_with('vacc')) %>% 
     pivot_longer(!c(country,week)) %>% mutate(age_grp = substr(name,6,6)) %>% 
-    group_by(country,week, age_grp) %>% summarise(vaccs = max(value))
+    group_by(country,age_grp) %>% select(!name) %>% 
+    mutate(vaccs = value - lag(value, default = 0)) %>% ### LUCY - CHANGING
+    select(!value) %>% 
+    mutate(vaccs = case_when(
+      vaccs < 0 ~ 0,
+      T ~ vaccs
+    ))
+  # output_v %>% ggplot() + geom_line(aes(week,vaccs, col=age_grp))
+  # output_v %>% group_by(year(week)) %>% summarise(sum(vaccs))
   
   output_v$age_grp <- factor(output_v$age_grp, levels=unique(output_v$age_grp))
   
-  
-  
   output_v <- data.table(output_v)
-  
   
   return(output_v)
   

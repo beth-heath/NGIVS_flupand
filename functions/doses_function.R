@@ -702,8 +702,9 @@ function_testing <- function(dose_table, epid_time, year_of_interest){
   restricting_to_time <- dose_table[week < epid_time]
   restricting_to_time <- restricting_to_time %>% mutate(year = year(week))
   output_v <- restricting_to_time %>% select(year, vaccs, vacc_type, vacc_population, age_grp) %>% 
-  group_by(year, vacc_type, vacc_population, age_grp) %>% summarise(vaccs = max(vaccs))
-  output_v <- output_v %>% group_by(year, vacc_type, vacc_population) %>% summarise(vaccs = sum(vaccs))
+    group_by(year, vacc_type, vacc_population) %>% summarise(vaccs = sum(vaccs))
+  # group_by(year, vacc_type, vacc_population, age_grp) %>% summarise(vaccs = max(vaccs))
+  # output_v <- output_v %>% group_by(year, vacc_type, vacc_population) %>% summarise(vaccs = sum(vaccs))
   return(output_v)
 }
 
@@ -750,6 +751,7 @@ function_testing <- function(dose_table, epid_time, year_of_interest){
 ### repeating by country ####
 
 for (country_code in country_codes){
+  
   param_grid_country <- expand.grid(
     simulation_index = 1:100,
     year_pandemic = 0:27,
@@ -768,7 +770,7 @@ for (country_code in country_codes){
         pandemic_example %>%
           #filtering for the simulation index put in
           filter(simulation_index == .x) %>%
-          #taking the epid_start_date from function
+          #taking the first epid_start_date from function
           pull(epid_start_date)
       })
     )
@@ -783,7 +785,10 @@ for (country_code in country_codes){
     select(country, simulation_index, year_pandemic, doses_tab) %>%
     unnest(doses_tab)
   
-  saveRDS(doses_analysed, file = here::here('data', 'Rearranged_doses',paste0('Rearranged_dose_for',country,coverage_tables,'.rds')))
+  # doses_analysed %>% group_by(year_pandemic, simulation_index, year) %>% summarise(s = sum(vaccs)) %>%
+  #   group_by(year) %>% summarise(mean(s), min(s), max(s))
+  
+  saveRDS(doses_analysed, file = here::here('data', 'Rearranged_doses',paste0('Rearranged_dose_for',country_code,coverage_tables,'.rds')))
   
 }
 

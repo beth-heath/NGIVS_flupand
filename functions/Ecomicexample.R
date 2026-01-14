@@ -426,8 +426,8 @@ delivery_cost_samples <- data.table(read_csv(here::here('data','econ','delivery_
 
 doses_calculator <- function(country_specs, delivery_cost_samples, 
                              country_of_interest, wastage, start_year_of_analysis,
-                             cost_discount_rate_val, age_policy, pandemic_year, costs){
-  doses_info <-  read_rds(here::here('data', 'Rearranged_doses', paste0('Rearranged_dose_for', country_of_interest, '.rds')))
+                             cost_discount_rate_val, age_policy, pandemic_year, costs, coverage_scenario){
+  doses_info <-  read_rds(here::here('data', 'Rearranged_doses', paste0('Rearranged_dose_for', country_of_interest, coverage_scenario, '.rds')))
   doses_info <- subset(doses_info, year_pandemic == pandemic_year)
   
   if (age_policy ==1){
@@ -531,7 +531,7 @@ Overall_economic_analysis <- function(seasonal_data_set, pandemic_data_set, symp
                                       cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
                                       cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
                                       doses_info, wastage, dose_price, case_proportion, age_policy, pandemic_year,
-                                      LMICS_country, LMIC_boost){
+                                      LMICS_country, LMIC_boost, coverage_scenario){
   
   #calculating the DALYS for seasonal and pandemic
   
@@ -588,7 +588,7 @@ Overall_economic_analysis <- function(seasonal_data_set, pandemic_data_set, symp
   
   doses_calculated <- doses_calculator(country_specs, delivery_cost_samples, 
                                        country_of_interest, wastage, 2025,
-                                       cost_discount_rate_val, age_policy, pandemic_year, costs)
+                                       cost_discount_rate_val, age_policy, pandemic_year, costs, coverage_scenario)
   
   
   
@@ -639,7 +639,7 @@ Overall_economic_analysis_seasonal <-  function(seasonal_data_set, symp_samples,
                                                 national_ifrs, yll_df, year_of_interest, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
                                                 cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
                                                 cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
-                                                wastage, dose_price, age_policy, pandemic_year, costs){
+                                                wastage, dose_price, age_policy, pandemic_year, costs, coverage_scenario){
   
   #calculating the DALYS for seasonal and pandemic
   
@@ -666,7 +666,7 @@ Overall_economic_analysis_seasonal <-  function(seasonal_data_set, symp_samples,
   
   doses_calculated <- doses_calculator(country_specs, delivery_cost_samples, 
                                        country_of_interest, wastage, 2025,
-                                       cost_discount_rate_val, age_policy, pandemic_year, costs)
+                                       cost_discount_rate_val, age_policy, pandemic_year, costs, coverage_scenario)
   
   combined_analysis <- combined_analysis %>%
     group_by(simulation_index, vacc_type, year) %>%
@@ -741,14 +741,14 @@ Pandemic_impact<- function(ITZregion, country_of_interest, age_testing_strategy,
                                              national_ifrs, yll_df, year_of_interest, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
                                              cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
                                              cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
-                                             doses_info, wastage, dose_price, case_proportion, age_testing_strategy,years, LMICS_country, LMIC_boost)
+                                             doses_info, wastage, dose_price, case_proportion, age_testing_strategy,years, LMICS_country, LMIC_boost, coverage_scenario)
   
   seasonal_only <- Overall_economic_analysis_seasonal(seasonal_dataset_only, symp_samples, global_ihrs,
                                                       country_of_interest,
                                                       national_ifrs, yll_df, year_of_interest, hosp_ratio, outpatient_ratios, DALY_weight_samples, pandemic_ifrs,
                                                       cost_predic_c,  WTP_choice, wtp_thresh, WTP_GDP_ratio,
                                                       cost_discount_rate_val, DALY_discount_rate_val, country_specs, delivery_cost_samples,
-                                                      wastage, dose_price, age_testing_strategy, years, costs)
+                                                      wastage, dose_price, age_testing_strategy, years, costs, coverage_scenario)
   
   seasonal_only1 <- seasonal_only
   seasonal_only1$mechanism <- 'sterilising'
