@@ -1,5 +1,7 @@
 ### File for pandemics running ### 
 
+setwd('NGIVS_flupand')
+
 # setting seed 
 set.seed(123)
 

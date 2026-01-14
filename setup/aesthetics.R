@@ -7,6 +7,7 @@ strain_colors <- c('tot' = 'black', 'totA' = '#7d66ac', 'totB' = '#e483a4')
 strain_colors1 <- c('A' = '#7d66ac', 'B' = '#e483a4')
 strain_colors2 <- c('INF_A' = '#7d66ac', 'INF_B' = '#e483a4')
 
+pandemic_colors <- c('1918' = '#d91818', '1957' = '#6baed6', '2009' = '#810f7c')
 
 vtn_colors <- c('0' = '#d91818', 'A.1' = '#e2790e', 'A.2' = '#eacb2c', 'B.1' = '#6baed6', 'B.2' = '#08519c', 'C' = '#810f7c')
 
@@ -43,17 +44,23 @@ names(supp.labs.n) <- c(1:5)
 
 who_region_labs <- c('African\nRegion','Region of\nthe Americas','South-East\nAsian Region','European\nRegion',
                      'Eastern\nMediterranean Region', 'Western\nPacific Region')
-names(who_region_labs) <- c('AFR','AMR','EMR','EUR','SEAR','WPR')
+names(who_region_labs) <- c('AFR','AMR','SEAR','EUR','EMR','WPR')
 who_region_labs2 <- c('African Region','Region of the Americas','South-East Asian Region','European Region',
                      'Eastern Mediterranean Region', 'Western Pacific Region')
-names(who_region_labs2) <- c('AFR','AMR','EMR','EUR','SEAR','WPR')
+names(who_region_labs2) <- c('AFR','AMR','SEAR','EUR','EMR','WPR')
 
 supp.labs.age <- c('0-4','0-10','0-17','65+','0-17, 65+','None')
 names(supp.labs.age) <- c(1:5,'None')
 supp.labs.cov <- supp.labs.age
 
+supp.labs.pand <- c('Pandemic Scenario 1','Pandemic Scenario 2','Pandemic Scenario 3')
+names(supp.labs.pand) <- c(1918, 1957, 2009)
+
 var_labs <- c('Infections','Deaths','Hospitalisations')
 names(var_labs) <- c('infections_av','deaths_av','hospitalisations_av')
+
+outcomes_labs <- c('Infections (millions)','Deaths (thousands)','Hospitalisations (thousands)')
+names(outcomes_labs) <- c('infs','deaths','hosps')
 
 supp.labs.agegrps <- c('0-4','5-17','18-64','65+')
 names(supp.labs.agegrps) <- c(1:4)
@@ -84,41 +91,40 @@ names(supp.labs.ITZ2) <- c("Africa", "Asia-Europe", "Eastern and Southern Asia",
 ## CI functions 
 
 eti50L <- function(x){
-  if(length(x) == 100){
-    return(0.25*sort(x)[25] + 0.75*sort(x)[26])
-  }else{stop('length(x) != 100')}
+  unname(quantile(x, 0.25))
 }
 eti50U <- function(x){
-  if(length(x) == 100){
-    return(0.25*sort(x)[76] + 0.75*sort(x)[75])
-  }else{stop('length(x) != 100')}
+  unname(quantile(x, 0.75))
 }
 eti95L <- function(x){
-  if(length(x) == 100){
-    return(0.525*sort(x)[3] + 0.475*sort(x)[4])
-  }else{stop('length(x) != 100')}
+  unname(quantile(x, 0.025))
 }
 eti95U <- function(x){
-  if(length(x) == 100){
-    return(0.525*sort(x)[98] + 0.475*sort(x)[97])
-  }else{stop('length(x) != 100')}
+  unname(quantile(x, 0.975))
 }
 
 # turn data.table into median etc.:
 
 dt_to_meas <- function(dt, # data.table input
-                         cols, # vector of column names to group by
-                         using50 = F
-                       ){
+                       cols, # vector of column names to group by
+                       using50 = F,
+                       usingMean = F
+){
+  
+  dt <- data.table(dt)
+  
+  point_measure <- ifelse(usingMean, 'mean', 'median')
+  
   out <- data.table()
+  
   if(using50 == T){
-    for(meas in c('median','eti50L', 'eti50U', 'eti95L', 'eti95U')){
+    for(meas in c(point_measure,'eti50L', 'eti50U', 'eti95L', 'eti95U')){
       dt_m <- dt[, lapply(.SD, get(meas)), by = cols]
       dt_m[, measure := meas]
       out <- rbind(out, dt_m)
     }
   }else{
-    for(meas in c('median', 'eti95L', 'eti95U')){
+    for(meas in c(point_measure, 'eti95L', 'eti95U')){
       dt_m <- dt[, lapply(.SD, get(meas)), by = cols]
       dt_m[, measure := meas]
       out <- rbind(out, dt_m)
@@ -131,7 +137,9 @@ dt_to_meas <- function(dt, # data.table input
   out
 }
 
-
+dollar_rounded <- function(x){
+  paste0(ifelse(x < 0, '-', ''), '$',round(abs(x)))
+}
 
 
 

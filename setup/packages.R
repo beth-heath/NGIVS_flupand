@@ -18,7 +18,7 @@ library(ggplot2)
 library(readxl)
 suppressPackageStartupMessages(library(tidyverse))
 library(viridis)
-library(patchwork)
+# library(patchwork)
 library(wpp2022)
 library(WDI)
 suppressPackageStartupMessages(library(fluEvidenceSynthesis))
@@ -30,5 +30,5 @@ library(DescTools)
 
 select <- dplyr::select
 
-
+options(dplyr.summarise.inform = FALSE)
 

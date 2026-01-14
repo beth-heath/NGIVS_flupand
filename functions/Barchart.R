@@ -1,11 +1,19 @@
 #aesthics file
 
-source(here::here('setup','aesthetics.R'))
+setwd('/Users/lshlg12/Desktop/LSHTM/Research_Assistant_2325/ngiv_pandemic/NGIVS_flupand')
 
+source(here::here('setup','aesthetics.R'))
+source(here::here('setup','packages.R'))
+
+options(arrow.unsafe_metadata = TRUE)
+
+cov <- 50
+lmic_num <- 1
+discount_num <- 1
 
 #loading in WHO data file for WHO region
 WHO_region_file <- wtp_thresh <- data.table(read_csv(here::here('data/WHO_regions.csv'), show_col_type=F))
-
+country_itzs_names <- data.table(read_csv(here::here('data','country_itzs_names.csv'), show_col_types=F))
 
 #comporartor = 0 means no vaccination
 producing_data_for_barchart <- function(overall_file, mechanism_of_interest, comparator){
@@ -183,7 +191,7 @@ for (i in 1:length(ITZ_zone_done)) {
   country_codes_not_considered <-c('GUF', 'HKG', 'MAC', 'NCL', 'PRI', 'PSE', 'TWN', 'XKX')
   country_codes <- country_codes[!country_codes %in% country_codes_not_considered]
   for (country_of_interest in country_codes){
-    overall_file <- read_parquet(file.path('Run_script', 'Overall', paste0('Overallfile', country_of_interest, '.parquet')))
+    overall_file <- read_parquet(here::here('Run_script', paste0('Overall_',cov), paste0('Overallfile', country_of_interest, 'LMICS',lmic_num,'discounting',discount_num,'.parquet')))
     region_of_interest<- WHO_region_file[country_code == country_of_interest, ]$WHOREGION
     overall_file$WHO_region <- rep(region_of_interest, nrow(overall_file))
     

@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH --job-name=doses-1 # Job name
+#SBATCH --mail-type=BEGIN,END,FAIL # Mail events (NONE, BEGIN, END, FAIL, AL$
+#SBATCH --mail-user=lshlg12@lshtm.ac.uk # Where to send mail
+#SBATCH --ntasks=6 # Run on a single core
+#SBATCH --nodes=1 # Run all processes on a single node
+#SBATCH --mem=48gb # Job memory request
+#SBATCH --time=178:00:00 # Time limit hrs:min:sec
+#SBATCH --output=outputs/parallel_%j.log # Standard output and error log
+pwd; hostname; date
+echo "time started"
+date
+Rscript NGIVS_flupand/functions/doses_function.R 1
+echo "time ended"

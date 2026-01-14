@@ -1,5 +1,7 @@
 ##### Seasonal epidemics code ######
 
+setwd('NGIVS_flupand')
+
 # setting seed 
 set.seed(123)
 
