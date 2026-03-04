@@ -179,7 +179,7 @@ plot2 <- ggplot(df, aes(x = step)) +
   theme_minimal() +
   # scale_y_log10(breaks = c(0.01,0.03,0.1,0.3,1,3,10),
   #               labels = c(0.01,0.03,0.1,0.3,1,3,10)) +
-  labs(y = 'CFR (%)', x = 'Age (years)', col = 'Scenario') +
+  labs(y = 'IFR (%)', x = 'Age (years)', col = 'Scenario') +
   theme(
     plot.title = element_text(size = 18, face = "bold"),
     axis.title = element_text(size = 14),
