@@ -9,6 +9,10 @@ options(scipen = 9999)
 ## NGIV IN ACTION
 ngiv <- 'B.2'
 
+## COMPARATOR SCENARIO 
+comp <- c('0','A.2')[2]
+cat('COMPARATOR: ', comp, '\n', sep='')
+
 merged_SA_data <- data.frame()
 test_dt_all <- data.frame()
 
@@ -22,7 +26,7 @@ discount_num <- c(1, 1, 1, 1, 2, 1, 1)[SA]
 read <- rep(T, 7)[SA]
 
 SA_FOLDER <- paste0('cov_', cov, '_lmic_', lmic_num, '_discount_', discount_num)
-SA_FILEPATH <- file.path('Graphs_included', SA_FOLDER)
+SA_FILEPATH <- file.path('Graphs_included', comp, SA_FOLDER)
 if(!file.exists(SA_FILEPATH)){dir.create(SA_FILEPATH)}
 
 ## PANDEMIC MECHANISM
@@ -83,7 +87,7 @@ if(!read){
       overall_file$WHO_region <- rep(region_of_interest, nrow(overall_file))
       
       overall_file <- overall_file %>% 
-        filter(vacc_type %in% c('0',ngiv), 
+        filter(vacc_type %in% c('0','A.2',ngiv), # save for both comparator scenarios
                age_testing_strategy %in% c(2, 4))
       
       if(nrow(outputs) == 0){
@@ -130,7 +134,7 @@ by_vec_mech <- c(by_vec, 'mechanism')
 outputs_agg <- outputs[, ..all_vec]
 outputs_agg <- outputs_agg[, lapply(.SD, sum), by = by_vec_mech]
 
-outputs_base <- outputs_agg[mechanism == 'sterilising' & vacc_type == '0']
+outputs_base <- outputs_agg[mechanism == 'sterilising' & vacc_type == comp]
 outputs_ngiv <- outputs_agg[mechanism == mech & vacc_type == ngiv]
 
 health_dat_annual <- outputs_ngiv %>% left_join(outputs_base, by = by_vec_no_vacc, suffix = c('_ngiv','_base')) %>% 
@@ -282,8 +286,9 @@ ggplot() +
   scale_fill_manual(values = pandemic_colors_w_epid, labels = c(paste0('Pandemic Scenario ', 1:3), 'Seasonal influenza')) + 
   theme_bw() +
   scale_x_continuous(limits = c(0.5, 24.5), breaks = 1:24,
-                     labels = c(rbind(rep('', 6), rep('', 6), unname(who_region_labs_alphabetical), rep('', 6)))
-                     ) +
+                     labels = c(rbind(rep('', 6), rep('', 6), unname(who_region_labs_alphabetical), rep('', 6))),
+                     expand = expansion(c(0.01, 0.01))) +
+  scale_y_continuous(expand = expansion(c(0.00075, 0.025))) +
   theme(text = element_text(size = 16),
         axis.ticks.x = element_blank(),
         axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
@@ -360,8 +365,9 @@ ggplot() +
   scale_fill_manual(values = pandemic_colors_w_epid, labels = c(paste0('Pandemic Scenario ', 1:3), 'Seasonal influenza')) + 
   theme_bw() +
   scale_x_continuous(limits = c(0.5, 24.5), breaks = 1:24, 
-                     labels = c(rbind(rep('', 6), rep('', 6), unname(who_region_labs_alphabetical), rep('', 6)))
-                     ) +
+                     labels = c(rbind(rep('', 6), rep('', 6), unname(who_region_labs_alphabetical), rep('', 6))),
+                     expand = expansion(c(0.01, 0.01))) +
+  scale_y_continuous(expand = expansion(c(0.00075, 0.025))) +
   theme(text = element_text(size = 14),
         axis.ticks.x = element_blank(),
         axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
@@ -406,7 +412,7 @@ by_vec_mech <- c(by_vec, 'mechanism')
 outputs_agg <- outputs[, ..all_vec]
 outputs_agg <- outputs_agg[, lapply(.SD, sum), by = by_vec_mech]
 
-outputs_base <- outputs_agg[mechanism == 'sterilising' & vacc_type == '0']
+outputs_base <- outputs_agg[mechanism == 'sterilising' & vacc_type == comp]
 outputs_ngiv <- outputs_agg[mechanism == mech & vacc_type == ngiv]
 
 # computing additional economic value per dose
@@ -568,8 +574,8 @@ test_dt_all <- rbind(test_dt_all, test_dt %>% mutate(sens_a = sens_a_name))
 
 }
 
-write_rds(merged_SA_data, here::here(paste0('merged_SA_data.rds')))
-write_csv(test_dt_all, here::here(paste0('gbr_out.csv')))
+write_rds(merged_SA_data, here::here(paste0(comp,'_merged_SA_data.rds')))
+write_csv(test_dt_all, here::here(paste0(comp,'_gbr_out.csv')))
 
 #### FIGURE 3 ####
 
@@ -613,7 +619,7 @@ merged_SA_data_plot %>%
   # ggtitle(paste0('National and regional median additional economic benefit per dose, when a pandemic occurs in ', years_vec[year_index])) + 
   labs(x = 'Additional economic benefit per dose, $2022', y = '', col = '', fill = '')
 
-ggsave(here::here('Graphs_included',paste0('Fig_3_', years_vec[year_index], '.png')),
+ggsave(here::here('Graphs_included',paste0(comp,'_Fig_3_', years_vec[year_index], '.png')),
        width = 20, height = 15)
 
 merged_SA_data_plot %>% 
@@ -639,7 +645,7 @@ merged_SA_data_plot %>%
   # ggtitle(paste0('National and regional median additional economic benefit per dose, when a pandemic occurs in ', years_vec[year_index])) + 
   labs(x = 'Economic benefit per dose, $2022', y = '', col = '', fill = '')
 
-ggsave(here::here('Graphs_included',paste0('Fig_3_pand_threshold_cost_', years_vec[year_index], '.png')),
+ggsave(here::here('Graphs_included',paste0(comp,'_Fig_3_pand_threshold_cost_', years_vec[year_index], '.png')),
        width = 20, height = 10)
 
 SA_cols <- c('#005a32','#006837', '#31a354', '#addd8e', '#d9f0a3',
@@ -681,7 +687,7 @@ supp_plot_dat %>%
   # ggtitle(paste0('National and regional median additional economic benefit per dose, when a pandemic occurs in ', years_vec[year_index])) + 
   labs(x = 'Additional economic benefit per dose, $2022', y = '', col = '', fill = '')
 
-ggsave(here::here('Graphs_included',paste0('Fig_3_', years_vec[year_index],'_SUPP.png')),
+ggsave(here::here('Graphs_included',paste0(comp,'_Fig_3_', years_vec[year_index],'_SUPP.png')),
        width = 19, height = 14)
 
 }
