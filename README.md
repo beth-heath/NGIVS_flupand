@@ -86,11 +86,7 @@ Contains the economic analysis used in the paper.
 
 ### `functions/Pandemic_Scenarios_diagram.R`
 
-This is the code to create the figures contained in the paper. 
-
-### `functions/Pandemic_Scenarios_diagram.R`
-
-This is the code to create the figures contained in the paper. 
+Code to create the figures contained in the paper. 
 
 ### `functions/plots_LG.R`
 
