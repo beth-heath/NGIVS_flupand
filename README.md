@@ -1,12 +1,10 @@
 # Pandemics_project
 
-Project that runs seasonal epidemics based on code from Goodfellow and includes pandemics based on the 1919, 1957 and 2009 pandemics.
-
+Project that runs seasonal epidemics based on code from Goodfellow et al., and includes pandemics based on the 1919, 1957 and 2009 pandemics.
 
 Built from work from <https://github.com/lucy-gf/flu_model_LG>
 
-The project consists of five folders: data to include the data to run the code, functions including the functions contained in the code, setup which includes the files to download
-packages, Roles_to_run which included the scripts to run to produce the outputs for the analysis and Run_scripts which is the output from Run scripts.
+The project consists of five folders: data to include the data to run the code, functions including the functions contained in the code, setup which includes the files to download packages, Roles_to_run which included the scripts to run to produce the outputs for the analysis and Run_scripts which is the output from Run scripts.
 
 ### `Roles_to_run/Overall_script_epidemics.R`
 
@@ -21,7 +19,6 @@ This code will run the pandemic portion of the model.
 It requires the continent (ITZ), pandemic scenario (either 1918, 1957 or 2009) and the coverage to be included to run the code (20, 50, 70).
 This code will save the corresponding ITZ and coverage levels in the Run_script folder. 
 This only contains data from weeks where the number of infections is non-zero. 
-
 
 ### `functions/Running_analysis_script.R`
 
@@ -63,8 +60,6 @@ Note: if adjusting the number of strategies or disease mechanisms then these num
 
 ### `functions/Analysisfile.R`
 
-[TBD]
-
 This contains the files to read in the data and analysise the files that feeds into the Pandemic_impact function in Economice example that is used in the Running_analysis_script.R
 
 ### `functions/contact_matr_fcns.R`
@@ -73,9 +68,7 @@ Taken from Goodfellow et al. Produces the contact matrices.
 
 ### `functions/Convergence_tests.R`
 
-[TBD]
-
-Runs the convergence tests used in the paper. 
+Runs the convergence tests.
 
 ### `functions/creating_pandemic_data.R`
 
@@ -89,12 +82,16 @@ This saves both the overall doses dose_table_coverage and the country dose by co
 
 ### `functions/Economiceexample.R`
 
-[TBD]
-
 Contains the economic analysis used in the paper.
 
 ### `functions/Pandemic_Scenarios_diagram.R`
 
 This is the code to create the figures contained in the paper. 
 
+### `functions/Pandemic_Scenarios_diagram.R`
 
+This is the code to create the figures contained in the paper. 
+
+### `functions/plots_LG.R`
+
+Produces figures shown in the manuscript.
