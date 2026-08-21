@@ -18,6 +18,8 @@ args <- commandArgs(trailingOnly = TRUE)
 continent <- as.numeric(args[1])
 pandemic_scenario <- as.numeric(args[2])
 coverage_scenario <- as.numeric(args[3])
+# reduced VE in pandemics
+PAND_REDUC_VE_SCALAR_IN_SA <- as.numeric(args[4])
 
 print(continent)
 

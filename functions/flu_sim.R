@@ -22,7 +22,8 @@ one_flu <- function(
     doses_dt,
     vacc_cov_vec,
     susceptibility_for_kids,
-    pandemic_date
+    pandemic_date,
+    PAND_REDUC_VE_SCALAR # what prop of normal VE should it be in a pandemic?
 ){
   
   #if a pandemic has not occured in the period then we set the pandemic date to the end of the time period
@@ -43,7 +44,7 @@ one_flu <- function(
     vacc_details <- vacc_type_list_pand[[vaccine_program$vacc]]
     efficacy_input <- c(rep(vacc_details$VE[1 + 2*(1 - matching)], 3), vacc_details$VE[2 + 2*(1 - matching)])
     # correcting the efficacy to be half that for pandemics
-    efficacy_input <- 0.5 * efficacy_input
+    efficacy_input <- PAND_REDUC_VE_SCALAR * efficacy_input
     vacc_rel_inf <- vacc_details$rel_inf
     ## including the gamma variables in the calendar
     vacc_gammas <- c(vacc_details$gamma1_variable, vacc_details$gamma2_variable)
@@ -269,7 +270,8 @@ many_flu <- function(
     doses_dt = NULL,
     vacc_cov_vec = NULL,
     model_age_groups,
-    demography_dt
+    demography_dt, 
+    PAND_REDUC_VE_SCALAR_IN # what prop of normal VE should it be in a pandemic?
 ){
   
   dates_many_flu <- seq.Date(last_monday(min(epid_inputs$period_start_date)), 
@@ -328,7 +330,8 @@ many_flu <- function(
       doses_dt,
       vacc_cov_vec,
       susceptibility_for_kids = epid_data$susceptibility_for_kids,
-      pandemic_date
+      pandemic_date,
+      PAND_REDUC_VE_SCALAR = PAND_REDUC_VE_SCALAR_IN
     )
     
 

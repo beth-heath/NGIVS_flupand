@@ -172,7 +172,8 @@ flu_parallel_ITZ <- function(vaccine_input){
                              doses_dt = if(vaccine_variable == 'doses'){doses}else{NULL},
                              vacc_cov_vec = if(vaccine_variable == 'coverage'){cov_vec}else{NULL},
                              model_age_groups,
-                             demography_dt
+                             demography_dt,
+                             PAND_REDUC_VE_SCALAR_IN_SA # uniform value, set for sensitivity analysis or base
     )
     
   
@@ -277,7 +278,8 @@ flu_parallel_ITZ_epi <- function(vaccine_type){
                              doses_dt = if(vaccine_variable == 'doses'){doses}else{NULL},
                              vacc_cov_vec = if(vaccine_variable == 'coverage'){cov_vec}else{NULL},
                              model_age_groups,
-                             demography_dt
+                             demography_dt,
+                             PAND_REDUC_VE_SCALAR_IN_SA
     )
     
     combined_trial <- combined_trial[year(time) >= start_year_of_analysis] # in case epidemic started pre-2025 

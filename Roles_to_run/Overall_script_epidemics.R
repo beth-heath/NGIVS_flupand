@@ -70,6 +70,9 @@ ageing_day <<- as.numeric(substr(ageing_date, 1, 2))
 ageing_month <<- as.numeric(substr(ageing_date, 4, 5))
 vacc_calendar_start <<- ifelse(hemisphere_input=='NH', key_dates[2], key_dates[1])
 
+# reduced VE in a pandemic, shouldn't matter here as we are in epidemics
+PAND_REDUC_VE_SCALAR_IN_SA <<- 0.5
+
 ### Setting up the simulation for all different age-groups tested and for all countries in the ITZ
 
 for (age_groups in 1:5){
