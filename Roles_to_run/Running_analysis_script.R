@@ -8,7 +8,11 @@ ITZregion <- as.numeric(args[1])
 LMIC_boost <- as.numeric(args[2])
 DALY_discount <- as.numeric(args[3])
 coverage_scenario <- as.numeric(args[4])
-
+# reduced VE in pandemics
+PAND_REDUC_VE_SCALAR_IN_SA <- as.numeric(args[5])/100
+PAND_REDUC_FILENAME <- if(PAND_REDUC_VE_SCALAR_IN_SA != 0.5){
+  paste0('_PANDREDUC_', PAND_REDUC_VE_SCALAR_IN_SA)
+}else{''}
 
 LMIC_boost <- c(1,3)[LMIC_boost]
 discount_SA <- c(0,1)[DALY_discount]
@@ -65,7 +69,7 @@ for (country in country_codes){
     
     if (years ==28){
       overall_file <- arrow_table(overall_file)
-      write_parquet(overall_file, sink = here::here('Run_script',paste0('Overall_', coverage_scenario), paste0('Overallfile',country_of_interest,'LMICS',LMIC_boost,'discounting', DALY_discount, '.parquet')), compression = "zstd")
+      write_parquet(overall_file, sink = here::here('Run_script',paste0('Overall_', coverage_scenario), paste0('Overallfile',country_of_interest,'LMICS',LMIC_boost,'discounting', DALY_discount, PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
       rm(overall_file)
       }
     

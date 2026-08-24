@@ -16,19 +16,19 @@ pandemic_datasets <- function(ITZ, country, age_groups, year_of_interest, pandem
   }
   
   if (pandemic_year <= 5){
-    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_1.parquet')), compression = "zstd")
+    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_1', PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
     selected_year <- pandemic_dataset[pandemic_dataset$simulation_index > (pandemic_year-1)*100 & pandemic_dataset$simulation_index < (100*pandemic_year)+1]
     ##selected_year$simulation_index <- seq(1,100,1)
     rm(pandemic_dataset)
     gc()
   } else if (pandemic_year == 6) {
-    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_1.parquet')), compression = "zstd")
+    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_1', PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
     select_year1 <- pandemic_dataset[pandemic_dataset$simulation_index > (pandemic_year-1)*100]
     ##selected_year1$simulation_index <- seq(1,100,1)
     rm(pandemic_dataset)
     gc()
     
-    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_2.parquet')), compression = "zstd")
+    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_2', PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
     select_year2 <- pandemic_dataset[pandemic_dataset$simulation_index < (100*pandemic_year)+1]
     #selected_year2$simulation_index <- seq(1,100,1)
     rm(pandemic_dataset)
@@ -36,65 +36,65 @@ pandemic_datasets <- function(ITZ, country, age_groups, year_of_interest, pandem
     
     selected_year <- rbind(select_year1, select_year2)
   } else if (pandemic_year < 12 & pandemic_year >6){
-    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_2.parquet')), compression = "zstd")
+    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_2', PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
     selected_year <- pandemic_dataset[pandemic_dataset$simulation_index > (pandemic_year-1)*100 & pandemic_dataset$simulation_index < (100*pandemic_year)+1]
     #selected_year$simulation_index <- seq(1,100,1)
     rm(pandemic_dataset)
     gc()
     
   } else if (pandemic_year == 12){
-    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_2.parquet')), compression = "zstd")
+    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_2', PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
     select_year1 <- pandemic_dataset[pandemic_dataset$simulation_index > (pandemic_year-1)*100]
     #selected_year1$simulation_index <- seq(1,100,1)
     rm(pandemic_dataset)
     gc()
     
-    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_3.parquet')), compression = "zstd")
+    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_3', PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
     select_year2 <- pandemic_dataset[pandemic_dataset$simulation_index < (100*pandemic_year)+1]
     #selected_year2$simulation_index <- seq(1,100,1)
     rm(pandemic_dataset)
     gc()
     selected_year <- rbind(select_year1, select_year2)
   }else if  (pandemic_year <17 & 12 <pandemic_year){
-    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_3.parquet')), compression = "zstd")
+    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_3', PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
     selected_year <- pandemic_dataset[pandemic_dataset$simulation_index > (pandemic_year-1)*100 & pandemic_dataset$simulation_index < (100*pandemic_year)+1]
     #selected_year$simulation_index <- seq(1,100,1)
     rm(pandemic_dataset)
     gc()
   }else if (pandemic_year == 17){
-    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_3.parquet')), compression = "zstd")
+    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_3', PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
     select_year1 <- pandemic_dataset[pandemic_dataset$simulation_index > (pandemic_year-1)*100]
     #selected_year1$simulation_index <- seq(1,100,1)
     rm(pandemic_dataset)
     gc()
     
-    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_4.parquet')), compression = "zstd")
+    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_4', PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
     select_year2 <- pandemic_dataset[pandemic_dataset$simulation_index < (100*pandemic_year)+1]
     #selected_year2$simulation_index <- seq(1,100,1)
     rm(pandemic_dataset)
     gc()
     selected_year <- rbind(select_year1, select_year2)
   }else if (pandemic_year <23 & 17 < pandemic_year){
-    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_4.parquet')), compression = "zstd")
+    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_4', PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
     selected_year <- pandemic_dataset[pandemic_dataset$simulation_index > (pandemic_year-1)*100 & pandemic_dataset$simulation_index < (100*pandemic_year)+1]
     #selected_year$simulation_index <- seq(1,100,1)
     rm(pandemic_dataset)
     gc()
   }else if (pandemic_year == 23){
-    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_4.parquet')), compression = "zstd")
+    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_4', PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
     select_year1 <- pandemic_dataset[pandemic_dataset$simulation_index > (pandemic_year-1)*100]
     #selected_year1$simulation_index <- seq(1,100,1)
     rm(pandemic_dataset)
     gc()
     
-    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_5.parquet')), compression = "zstd")
+    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_5', PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
     select_year2 <- pandemic_dataset[pandemic_dataset$simulation_index < (100*pandemic_year)+1]
     #selected_year2$simulation_index <- seq(1,100,1)
     rm(pandemic_dataset)
     gc()
     selected_year <- rbind(select_year1, select_year2)
   }else if (23 < pandemic_year){
-    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_5.parquet')), compression = "zstd")
+    pandemic_dataset <-read_parquet(here::here('Run_script',paste0('ITZzone', ITZ,'_', coverage_scenario), paste0(condensed_c_name, country,age_groups,'pansn', year_of_interest,'_5', PAND_REDUC_FILENAME,'.parquet')), compression = "zstd")
     selected_year <- pandemic_dataset[pandemic_dataset$simulation_index > (pandemic_year-1)*100 & pandemic_dataset$simulation_index < (100*pandemic_year)+1]
     #selected_year$simulation_index <- seq(1,100,1)
     rm(pandemic_dataset)
