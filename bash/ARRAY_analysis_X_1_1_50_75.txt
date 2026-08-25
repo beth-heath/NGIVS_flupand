@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH --job-name=pandemic-%a-2-50-70 # Job name
+#SBATCH --job-name=analysis-%a-1-1-50-75 # Job name
 #SBATCH --mail-type=BEGIN,END,FAIL # Mail events (NONE, BEGIN, END, FAIL, AL$
 #SBATCH --mail-user=lshlg12@lshtm.ac.uk # Where to send mail
-#SBATCH --ntasks=16 # Run on a single core
+#SBATCH --ntasks=6 # Run on a single core
 #SBATCH --nodes=1 # Run all processes on a single node
 #SBATCH --mem=96gb # Job memory request
 #SBATCH --time=178:00:00 # Time limit hrs:min:sec
 #SBATCH --array=1-7 # job array index
-#SBATCH --output=outputs/pand_%_2_50_70.log # Standard output and error log
+#SBATCH --output=outputs/analysis_%a_1_1_50_75.log # Standard output and error log
 pwd; hostname; date
 echo "time started"
 date
-Rscript NGIVS_flupand/Roles_to_run/Overall_script_pandemics.R ${SLURM_ARRAY_TASK_ID} 2 50 70
+Rscript NGIVS_flupand/Roles_to_run/Running_analysis_script.R ${SLURM_ARRAY_TASK_ID} 1 1 50 75
 echo "time ended"
