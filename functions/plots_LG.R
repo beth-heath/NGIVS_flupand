@@ -17,28 +17,31 @@ merged_SA_data <- data.frame()
 test_dt_all <- data.frame()
 
 ## SET SENS. ANALYSIS VALUES
-for(SA in 1:7){
+for(SA in 8:9){ #1:9){
 
-cov <- c(50, 20, 70, 50, 50, 50, 50)[SA]
-lmic_num <- c(1, 1, 1, 3, 1, 1, 1)[SA]
-discount_num <- c(1, 1, 1, 1, 2, 1, 1)[SA]
+cov <- c(50, 20, 70, 50, 50, 50, 50, 50, 50)[SA]
+lmic_num <- c(1, 1, 1, 3, 1, 1, 1, 1, 1)[SA]
+discount_num <- c(1, 1, 1, 1, 2, 1, 1, 1, 1)[SA]
+pand_VE <- c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.75, 1)[SA]
+pand_VE_in <- if(pand_VE == 0.5){''}else{paste0('_PANDREDUC_', pand_VE)}
+pand_VE_ext <- if(pand_VE == 0.5){''}else{paste0('_PANDVE_', 100*pand_VE)}
 
-read <- rep(T, 7)[SA]
+read <- c(T, T, T, T, T, T, T, F, T)[SA]
 
-SA_FOLDER <- paste0('cov_', cov, '_lmic_', lmic_num, '_discount_', discount_num)
+SA_FOLDER <- paste0('cov_', cov, '_lmic_', lmic_num, '_discount_', discount_num, pand_VE_ext)
 SA_FILEPATH <- file.path('Graphs_included', comp, SA_FOLDER)
 if(!file.exists(SA_FILEPATH)){dir.create(SA_FILEPATH)}
 
 ## PANDEMIC MECHANISM
-mech <- c(rep('sterilising', 5),'disease mod','infection period')[SA]
+mech <- c(rep('sterilising', 5),'disease mod','infection period', rep('sterilising', 2))[SA]
 MECH_FILEPATH <- file.path(SA_FILEPATH, mech)
 if(!file.exists(MECH_FILEPATH)){dir.create(MECH_FILEPATH)}
 
 cat('\nSensitivity analysis: ', sep = '')
-if(cov == 50 & lmic_num == 1 & discount_num == 1 & mech == 'sterilising'){
+if(cov == 50 & lmic_num == 1 & discount_num == 1 & mech == 'sterilising' & pand_VE == 0.5){
   cat('Base\n')
 }else{
-  if(lmic_num == 1 & discount_num == 1 & mech == 'sterilising'){
+  if(lmic_num == 1 & discount_num == 1 & mech == 'sterilising' & pand_VE == 0.5){
     cat(cov, '% coverage\n', sep = '')
   }else{
     if(cov == 50 & lmic_num == 3 & discount_num == 1){
@@ -50,7 +53,9 @@ if(cov == 50 & lmic_num == 1 & discount_num == 1 & mech == 'sterilising'){
         if(cov == 50 & mech != 'sterilising'){
           cat('vaccine mechanism: ', mech, sep = '')
         }else{
-          stop('ERROR')
+          if(cov == 50 & mech == 'sterilising' & pand_VE != 0.5){
+            cat('pandemic relative VE: ', 100*pand_VE, '%', sep = '')
+          }else{stop('ERROR')}
         }
       }
     }
@@ -79,7 +84,7 @@ if(!read){
     
     for (country_of_interest in country_codes){
       overall_file <- suppressWarnings(read_parquet(here::here('Run_script', paste0('Overall_',cov), 
-                                                               paste0('Overallfile', country_of_interest, 'LMICS',lmic_num,'discounting',discount_num,'.parquet'))))
+                                                               paste0('Overallfile', country_of_interest, 'LMICS',lmic_num,'discounting',discount_num,pand_VE_in,'.parquet'))))
       
       # overall_file %>% filter(vacc_type != '0') %>% group_by(mechanism, pandemic) %>% summarise(sum(total_infections.x), sum(total_infections.y)) # check what does what
       
