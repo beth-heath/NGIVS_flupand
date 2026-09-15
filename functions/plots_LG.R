@@ -26,7 +26,7 @@ pand_VE <- c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.75, 1)[SA]
 pand_VE_in <- if(pand_VE == 0.5){''}else{paste0('_PANDREDUC_', pand_VE)}
 pand_VE_ext <- if(pand_VE == 0.5){''}else{paste0('_PANDVE_', 100*pand_VE)}
 
-read <- c(T, T, T, T, T, T, T, F, T)[SA]
+read <- c(T, T, T, T, T, T, T, T, T)[SA]
 
 SA_FOLDER <- paste0('cov_', cov, '_lmic_', lmic_num, '_discount_', discount_num, pand_VE_ext)
 SA_FILEPATH <- file.path('Graphs_included', comp, SA_FOLDER)
@@ -515,7 +515,7 @@ comp_out_pop_meds %>%
   # ggtitle('National and regional mean additional economic benefit per dose, by year of pandemic occurrence') + 
   labs(x = 'Year of pandemic occurrence', 
        y = 'Difference in additional economic benefit per dose when a pandemic occurs, $2022', 
-       col = 'WHO region', fill = 'WHO region')
+       col = 'WHO region')
 
 ggsave(here::here(MECH_FILEPATH,'Fig_2.png'),
        width = 15, height = 14)
@@ -552,7 +552,7 @@ comp_out_pop_meds %>%
   # ggtitle('National and regional mean additional economic benefit per dose, by year of pandemic occurrence') + 
   labs(x = 'Year of pandemic occurrence', 
        y = 'Economic benefit per dose, $2022', 
-       col = 'WHO region', fill = 'WHO region')
+       col = 'WHO region')
 
 ggsave(here::here(MECH_FILEPATH,'Fig_2_b.png'),
        width = 15, height = 14)
@@ -583,11 +583,13 @@ mech_name <- if(mech=='sterilising'){'sterilising'}else{
   }
 }
 
-sens_a_name <- if(cov == 50 & lmic_num == 1 & discount_num == 1 & mech == 'sterilising'){'50% coverage'}else{
-  if(lmic_num == 1 & discount_num == 1 & mech == 'sterilising'){paste0(cov, '% coverage')}else{
+sens_a_name <- if(cov == 50 & lmic_num == 1 & discount_num == 1 & mech == 'sterilising' & pand_VE == 0.5){'50% coverage'}else{
+  if(lmic_num == 1 & discount_num == 1 & mech == 'sterilising' & pand_VE == 0.5){paste0(cov, '% coverage')}else{
     if(cov == 50 & lmic_num == 3 & discount_num == 1){paste0('Increased LMIC CFR')}else{
       if(cov == 50 & lmic_num == 1 & discount_num == 2){paste0('DALY 0% discount rate')}else{
-        if(cov == 50 & mech != 'sterilising'){paste0(mech_name, ' vaccine mechanism')}}}}}
+        if(cov == 50 & mech != 'sterilising'){paste0(mech_name, ' vaccine mechanism')}else{
+          paste0('Relative VE in pandemic: ', 100*pand_VE, '% of seasonal VE')
+        }}}}}
 
 merged_SA_data <- rbind(
   merged_SA_data, 
@@ -687,7 +689,7 @@ SA_cols <- c('#005a32','#006837', '#31a354', '#addd8e', '#d9f0a3',
              '#034e7b','#045a8d', '#2b8cbe', '#a6bddb', '#d0d1e6')
 
 supp_plot_dat <- merged_SA_data_plot %>% 
-  filter(! grepl('20',ANALYSIS), ! grepl('70', ANALYSIS)) %>%
+  filter(! grepl('20',ANALYSIS), ! grepl('70', ANALYSIS), ! grepl('Relative', ANALYSIS)) %>%
   mutate(ANALYSIS = gsub('50% coverage', 'Base', ANALYSIS, fixed = T)) %>% 
   arrange(ANALYSIS) %>% 
   group_by(WHO_region, ANALYSIS, pandemic_scenario) %>% 

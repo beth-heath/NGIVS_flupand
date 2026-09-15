@@ -200,3 +200,8 @@ combined
 ggsave(here::here('Graphs_included','Figure_1_patchwork.png'),
        height = 8, width = 8)
 
+ggsave(here::here('Graphs_included','Figure_1_patchwork.tif'),
+       height = 8, width = 8,
+       dpi = 300, device = "tiff", compression = "lzw",
+       bg = "white", limitsize = FALSE)
+
