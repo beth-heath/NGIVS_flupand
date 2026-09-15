@@ -17,7 +17,7 @@ merged_SA_data <- data.frame()
 test_dt_all <- data.frame()
 
 ## SET SENS. ANALYSIS VALUES
-for(SA in 8:9){ #1:9){
+for(SA in 1:9){
 
 cov <- c(50, 20, 70, 50, 50, 50, 50, 50, 50)[SA]
 lmic_num <- c(1, 1, 1, 3, 1, 1, 1, 1, 1)[SA]
@@ -304,6 +304,11 @@ ggplot() +
 ggsave(here::here(MECH_FILEPATH,'Fig_1.png'),
        width = 14, height = 14)
 
+ggsave(here::here(MECH_FILEPATH,'Fig_1.tif'),
+       width = 14, height = 14,
+       dpi = 300, device = "tiff", compression = "lzw",
+       bg = "white", limitsize = FALSE)
+
 ## save data
 
 save_averted <- health_dat_meas_l_w_epid %>% 
@@ -382,6 +387,11 @@ ggplot() +
 
 ggsave(here::here(MECH_FILEPATH,'Fig_1_by_dose.png'),
        width = 14, height = 14)
+
+ggsave(here::here(MECH_FILEPATH,'Fig_1_by_dose.tif'),
+       width = 14, height = 14,
+       dpi = 300, device = "tiff", compression = "lzw",
+       bg = "white", limitsize = FALSE)
 
 # save data
 
@@ -510,6 +520,11 @@ comp_out_pop_meds %>%
 ggsave(here::here(MECH_FILEPATH,'Fig_2.png'),
        width = 15, height = 14)
 
+ggsave(here::here(MECH_FILEPATH,'Fig_2.tif'),
+       width = 15, height = 14,
+       dpi = 300, device = "tiff", compression = "lzw",
+       bg = "white", limitsize = FALSE)
+
 #### FIGURE 2b ####
 
 comp_out_pop_meds %>% 
@@ -541,6 +556,11 @@ comp_out_pop_meds %>%
 
 ggsave(here::here(MECH_FILEPATH,'Fig_2_b.png'),
        width = 15, height = 14)
+
+ggsave(here::here(MECH_FILEPATH,'Fig_2_b.tif'),
+       width = 15, height = 14,
+       dpi = 300, device = "tiff", compression = "lzw",
+       bg = "white", limitsize = FALSE)
 
 ## saving threshold costs
 tc_comp_out <- outputs_ngiv %>% left_join(outputs_base, by = by_vec_no_vacc, suffix = c('_ngiv','_base')) %>% 
@@ -627,6 +647,11 @@ merged_SA_data_plot %>%
 ggsave(here::here('Graphs_included',paste0(comp,'_Fig_3_', years_vec[year_index], '.png')),
        width = 20, height = 15)
 
+ggsave(here::here('Graphs_included',paste0(comp,'_Fig_3_', years_vec[year_index], '.tif')),
+       width = 20, height = 15,
+       dpi = 300, device = "tiff", compression = "lzw",
+       bg = "white", limitsize = FALSE)
+
 merged_SA_data_plot %>% 
   filter(grepl('cov', ANALYSIS)) %>%
   ggplot() +
@@ -652,6 +677,11 @@ merged_SA_data_plot %>%
 
 ggsave(here::here('Graphs_included',paste0(comp,'_Fig_3_pand_threshold_cost_', years_vec[year_index], '.png')),
        width = 20, height = 10)
+
+ggsave(here::here('Graphs_included',paste0(comp,'_Fig_3_pand_threshold_cost_', years_vec[year_index], '.tif')),
+       width = 20, height = 10,
+       dpi = 300, device = "tiff", compression = "lzw",
+       bg = "white", limitsize = FALSE)
 
 SA_cols <- c('#005a32','#006837', '#31a354', '#addd8e', '#d9f0a3',
              '#034e7b','#045a8d', '#2b8cbe', '#a6bddb', '#d0d1e6')
@@ -694,6 +724,11 @@ supp_plot_dat %>%
 
 ggsave(here::here('Graphs_included',paste0(comp,'_Fig_3_', years_vec[year_index],'_SUPP.png')),
        width = 19, height = 14)
+
+ggsave(here::here('Graphs_included',paste0(comp,'_Fig_3_', years_vec[year_index],'_SUPP.tif')),
+       width = 19, height = 14,
+       dpi = 300, device = "tiff", compression = "lzw",
+       bg = "white", limitsize = FALSE)
 
 }
 
